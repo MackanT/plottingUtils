@@ -1,0 +1,30 @@
+
+## Known Bugs --
+
+11/30 -Fixed: Text editor text does not auto set to default if text present in entry when pressing "unselect items"
+
+11/30 -Fixed: find item can no longer select legend, probably a canvas -> dataCanvas issue....
+
+Adding loing legend does not move info -> cannot see all the text
+
+11/30 -Fixed: Log axis does not work (?) Might be cause negative data in test case, if so add protection against this!
+11/30 -Fixed: Setting log plot with axis = 0 -> crash
+
+Changing log->lin axis does not auto set good range
+
+Best fit line is killed......
+
+11/30 -Fixed: cannot properly use scale vector in format "xy"
+
+self.plot_editor_selected_item - may have a bad name...
+
+11/29 -Fixed: switching lin/| log does not remove old lines
+
+
+Changelog:
+
+2020-11-24 -
+Fixed scaling issue in x, y
+Fixed x, y grid axis showing correctly
+Added auto-set axis feature with locking mechanism for amnual override
+Added auto-set grid feature
