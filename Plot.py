@@ -119,6 +119,7 @@ class Plot:
         self.enable_plot_movement()
         self.plot_drag_mouse_clicked = False
         self.plot_drag_mouse_pos = [0, 0]
+        self.__add_home_button()
 
     # Datasets
 
@@ -225,6 +226,11 @@ class Plot:
 
             self.update_plots('all')
 
+    def __add_home_button(self):
+
+        self.home_button = Button(self.canvas, text='\u2302', width=2, command=self.auto_focus, bg=self.highlight_colors[1])
+        self.home_button.place(x=self.canvas_boundary[2] - 5,y=self.canvas_boundary[1] - 5, anchor=SE)
+
     # Ginput (Will be rewritten... will not clean up)
 
     def leftClick(self, event):
@@ -295,6 +301,33 @@ class Plot:
             return
 
     # Axis
+
+    def auto_focus(self):
+        
+        first_data_serie = True
+
+        for item in self.data_series:
+            if item.get_tag() != 'bFit': 
+                points = np.array(item.get_points())
+                if first_data_serie == True:
+                    first_data_serie = False
+
+                    min_x = np.min(points[0,:])
+                    max_x = np.max(points[0,:])
+                    min_y = np.min(points[1,:])
+                    max_y = np.max(points[1,:])
+                else:
+                    if np.min(points[0,:]) < min_x: min_x = np.min(points[0,:])
+                    if np.max(points[0,:]) < max_x: max_x = np.max(points[0,:])
+                    if np.min(points[1,:]) < min_y: min_y = np.min(points[1,:])
+                    if np.max(points[1,:]) < max_y: max_y = np.max(points[1,:])
+        
+        delta_x = (max_x - min_x) / 10
+        delta_y = (max_y - min_y) / 10
+
+        self.set_x_axis(min_x - delta_x, max_x + delta_x, 'drag')
+        self.set_y_axis(min_y - delta_y, max_y + delta_y, 'drag')
+        self.update_plots('all')
 
     def set_labels(self, textx, texty):
 
@@ -562,7 +595,7 @@ class Plot:
             elif pos[0] == 'S': yOffset = (self.plot_dimensions[1] 
                                            - 2*num_data*self.font_size)
             if pos[1] == 'W': xOffset = 2*self.font_size
-            elif pos[1] == 'E': xOffset = self.plot_dimensions[0] - 2*text_length
+            elif pos[1] == 'E': xOffset = self.plot_dimensions[0] - text_length - 2
 
             for i in range(num_data):
                 self.legend_content.append(self.plot.create_text(
@@ -664,15 +697,10 @@ class Plot:
             elif name == 'log': 
                 self.scale_type[0] = 'log'
                 self.scale_type[1] = 'log'
-            elif name == 'show':
-                grid_state = 'show'
-
-        dx = (np.amax(x)-np.amin(x))/10
-        dy = (np.amax(y)-np.amin(y))/10
-        self.set_x_axis(np.amin(x)-dx, np.amax(x)+dx, grid_state, 'graph')
-        self.set_y_axis(np.amin(y)-dy, np.amax(y)+dy, grid_state, 'graph')
+            elif name == 'show': grid_state = 'show'
 
         dataset.add_points(x,y)
+        self.auto_focus()
         dataset.add_scaled_points(self.scale_vector(x, 'x'), 
                                   self.scale_vector(y, 'y'))
 
