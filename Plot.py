@@ -116,7 +116,7 @@ class Plot:
         self.generate_plot_editor()
 
         # Plot Editing Toold
-        self.enable_plot_drag()
+        self.enable_plot_movement()
         self.plot_drag_mouse_clicked = False
         self.plot_drag_mouse_pos = [0, 0]
 
@@ -154,15 +154,17 @@ class Plot:
 
     # Drag and Drop screen
 
-    def enable_plot_drag(self):
+    def enable_plot_movement(self):
         self.plot.bind('<ButtonPress-1>', self.mouse_pressed)
         self.plot.bind('<B1-Motion>', self.mouse_dragged)
         self.plot.bind('<ButtonRelease-1>', self.mouse_released)
+        self.plot.bind('<MouseWheel>', self.mouse_scrolled)
 
     def mouse_pressed(self, event):
 
-        self.plot_drag_mouse_clicked = True
-        self.plot_drag_mouse_pos = [event.x, event.y]
+        if self.plot_editor_selected_counter != 1:
+            self.plot_drag_mouse_clicked = True
+            self.plot_drag_mouse_pos = [event.x, event.y]
 
     def mouse_dragged(self, event):
 
@@ -193,6 +195,33 @@ class Plot:
                             self.x_boundary[-1] + delta_x, 'drag')
             self.set_y_axis(self.y_boundary[0] + delta_y, 
                             self.y_boundary[-1] + delta_y, 'drag')
+
+            self.update_plots('all')
+
+    def mouse_scrolled(self, event):
+
+        if self.plot_editor_selected_counter != 1:
+
+            # Scroll Location
+            pos_x = event.x * self.x_scale_factor
+            pos_y = event.y * self.y_scale_factor
+
+            origin_x = (self.x_boundary[-1]-self.x_boundary[0]) / 2
+            origin_y = (self.y_boundary[-1]-self.y_boundary[0]) / 2
+
+            displacement_x = pos_x - origin_x
+            displacement_y = origin_y - pos_y
+
+            zoom_strength = 5
+            zoom_direction = event.delta/120 / zoom_strength
+            
+            delta_x = (self.x_boundary[-1]-self.x_boundary[0]) * zoom_direction
+            delta_y = (self.y_boundary[-1]-self.y_boundary[0]) * zoom_direction
+
+            self.set_x_axis(self.x_boundary[0] + delta_x + displacement_x, 
+                        self.x_boundary[-1] - delta_x + displacement_x, 'drag')
+            self.set_y_axis(self.y_boundary[0] + delta_y + displacement_y, 
+                        self.y_boundary[-1] - delta_y + displacement_y, 'drag')
 
             self.update_plots('all')
 
@@ -1118,7 +1147,6 @@ class Plot:
             # self.plotFun('a', '+', 'b', '*', 'exp', '^', 'c')
 
     def __select_item(self):
-
         if self.plot_editor_selected_counter == 0:
             self.plot_editor_selected_counter = 1
             self.__update_editor_buttons('sel_item', 'txt_input')
