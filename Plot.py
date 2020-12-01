@@ -115,6 +115,10 @@ class Plot:
                                     height = 230, bg=self.highlight_colors[3])
         self.generate_plot_editor()
 
+        # Plot Editing Toold
+        self.enable_plot_drag()
+        self.plot_drag_mouse_clicked = False
+        self.plot_drag_mouse_pos = [0, 0]
 
     # Datasets
 
@@ -147,6 +151,51 @@ class Plot:
         for i in range(len(search_list)):
             if search_list[i] == tag: return i
 
+
+    # Drag and Drop screen
+
+    def enable_plot_drag(self):
+        self.plot.bind('<ButtonPress-1>', self.mouse_pressed)
+        self.plot.bind('<B1-Motion>', self.mouse_dragged)
+        self.plot.bind('<ButtonRelease-1>', self.mouse_released)
+
+    def mouse_pressed(self, event):
+
+        self.plot_drag_mouse_clicked = True
+        self.plot_drag_mouse_pos = [event.x, event.y]
+
+    def mouse_dragged(self, event):
+
+        if self.plot_drag_mouse_clicked == True:
+            delta_x = ((self.plot_drag_mouse_pos[0] - event.x) 
+                            * self.x_scale_factor)
+            delta_y = ((event.y - self.plot_drag_mouse_pos[1]) 
+                            * self.y_scale_factor)
+            
+            self.set_x_axis(self.x_boundary[0] + delta_x, 
+                            self.x_boundary[-1] + delta_x)
+            self.set_y_axis(self.y_boundary[0] + delta_y, 
+                            self.y_boundary[-1] + delta_y)
+
+            self.plot_drag_mouse_pos = [event.x, event.y]
+
+    def mouse_released(self, event):
+
+        if self.plot_drag_mouse_clicked == True:
+            self.plot_drag_mouse_clicked = False
+
+            delta_x = ((self.plot_drag_mouse_pos[0] - event.x) 
+                            * self.x_scale_factor)
+            delta_y = ((event.y - self.plot_drag_mouse_pos[1]) 
+                            * self.y_scale_factor)
+            
+            self.set_x_axis(self.x_boundary[0] + delta_x, 
+                            self.x_boundary[-1] + delta_x, 'drag')
+            self.set_y_axis(self.y_boundary[0] + delta_y, 
+                            self.y_boundary[-1] + delta_y, 'drag')
+
+            self.update_plots('all')
+
     # Ginput (Will be rewritten... will not clean up)
 
     def leftClick(self, event):
@@ -174,15 +223,24 @@ class Plot:
 
     def set_line_color(self, color, tag):
         dataset = self.find_dataset(tag)
-        if dataset != None: dataset.set_color(color)
+        if dataset != None: 
+            self.add_dataset(tag)
+            dataset = self.find_dataset(tag)
+        dataset.set_color(color)
 
     def set_line_width(self, lineWidth, tag):
         dataset = self.find_dataset(tag)
-        if dataset != None: dataset.set_line_width(lineWidth)
+        if dataset != None: 
+            self.add_dataset(tag)
+            dataset = self.find_dataset(tag)
+        dataset.set_line_width(lineWidth)
 
     def set_dot_size(self, size, tag):
         dataset = self.find_dataset(tag)
-        if dataset != None: dataset.set_dot_size(size)
+        if dataset != None: 
+            self.add_dataset(tag)
+            dataset = self.find_dataset(tag) 
+        dataset.set_dot_size(size)
 
     # Plot Text
 
@@ -229,6 +287,7 @@ class Plot:
     def set_x_axis(self, x_start, x_end, *args):
 
         num_ticks = 10
+        update_plot = True
         self.remove_drawn_items(self.x_axis_numbers)
 
         if x_start == 'keep': x_start = self.x_boundary[0]
@@ -252,6 +311,7 @@ class Plot:
             elif name == 'show': self.has_x_grid = True
             elif name == 'hidden': self.has_x_grid = False
             elif isinstance(name, int): num_ticks = name
+            elif name == 'drag': update_plot = False
 
         if num_ticks == 0: num_ticks = 1 
 
@@ -305,11 +365,12 @@ class Plot:
         if self.has_x_grid == True: self.set_grid_lines('x', num_ticks)
         elif self.has_x_grid == False: self.remove_grid_lines('x')
         
-        self.update_plots('all')
+        if update_plot: self.update_plots('all')
 
     def set_y_axis(self, y_start, y_end, *args):
         
         num_ticks = 10
+        update_plot = True
         self.remove_drawn_items(self.y_axis_numbers)
         
         if y_start == 'keep': y_start = self.y_boundary[0]
@@ -333,6 +394,7 @@ class Plot:
             elif name == 'show': self.has_y_grid = True
             elif name == 'hidden': self.has_y_grid = False
             elif isinstance(name, int): num_ticks = name
+            elif name == 'drag': update_plot = False
 
         if num_ticks == 0: num_ticks = 1 
 
@@ -341,11 +403,11 @@ class Plot:
             tmp = y_start
             y_start = y_end
             y_end = tmp
-        
+
         common_term = self.plot_dimensions[1]/(y_start - y_end)
         abs_term = abs(y_end)/(abs(y_start) + abs(y_end))
         if y_end < 0: self.y0 = common_term*abs(y_end)
-        elif y_start > 0: self.y0 = common_term*y_start + self.plot_dimensions[1]
+        elif y_start > 0: self.y0 = -common_term*y_start + self.plot_dimensions[1]
         else: self.y0 = abs_term * self.plot_dimensions[1]
 
         self.y_boundary.clear()
@@ -385,7 +447,7 @@ class Plot:
         if self.has_y_grid == True: self.set_grid_lines('y', num_ticks)
         elif self.has_y_grid == False: self.remove_grid_lines('y')
 
-        self.update_plots('all')
+        if update_plot: self.update_plots('all')
 
     # Grid Lines
 
@@ -471,7 +533,7 @@ class Plot:
             elif pos[0] == 'S': yOffset = (self.plot_dimensions[1] 
                                            - 2*num_data*self.font_size)
             if pos[1] == 'W': xOffset = 2*self.font_size
-            elif pos[1] == 'E': xOffset = self.plot_dimensions[0] - text_length
+            elif pos[1] == 'E': xOffset = self.plot_dimensions[0] - 2*text_length
 
             for i in range(num_data):
                 self.legend_content.append(self.plot.create_text(
@@ -488,9 +550,10 @@ class Plot:
                             state=visibility))
 
         else:
-            tag_num = self.find_tag_number(tags[0], self.data_series)
-            self.plot.itemconfig(self.legend_content[tag_num], state='normal')
-            self.plot.itemconfig(self.legend_markers[tag_num], state='normal')
+            for item in self.legend_content:
+                self.plot.itemconfig(item, state='normal')
+            for item in self.legend_markers:
+                self.plot.itemconfig(item, state='normal')
 
     def update_legend(self, names, values):
         for i in range(len(names)):
@@ -559,8 +622,7 @@ class Plot:
             dataset = self.find_dataset(tag)
 
         # Plotting Parameters
-        
-        plot_range = range(len(x))
+        plot_range = range(np.size(x))
         plot_type = 'line'
         grid_state = ''
         for name in args:
@@ -593,7 +655,7 @@ class Plot:
         dataset.set_plot_type(plot_type)
         dataset.draw(plot_range)
 
-        if self.has_legend == True: self.set_legend('','','',tag)
+        if self.has_legend == True: self.set_legend('', '', '', 'graph')
 
     ### nPart of ginput!  
     def gen_x_path(self, points, x_start, x_end):
@@ -623,11 +685,11 @@ class Plot:
         if args[0] == 'all':
             for dataset in self.data_series:
                 if dataset.is_drawn() == True:        
-                    oldP = dataset.get_points()
-                    newX = self.scale_vector(oldP[0,:], 'x')
-                    newY = self.scale_vector(oldP[1,:], 'y')
-                    newIndex = self.animationScrollbar.get() if dataset.is_animated() == True else 0
-                    dataset.update_item(newX, newY, newIndex)
+                    point = dataset.get_points()
+                    new_x = self.scale_vector(point[0,:], 'x')
+                    new_y = self.scale_vector(point[1,:], 'y')
+                    new_index = self.animationScrollbar.get() if dataset.is_animated() == True else 0
+                    dataset.update_item(new_x, new_y, new_index)
     
     def enable_animator(self, length):
         if self.has_animation == False:
