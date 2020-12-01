@@ -13,7 +13,7 @@ class Plot:
         self.screen_width = width
         self.screen_height = height
         self.screen_padding_y = width/10
-        self.screen_padding_x = height/15
+        self.screen_padding_x = height/12
         self.font_size = int(width/100)
         self.font_type = 'arial %d' %self.font_size
         
@@ -90,6 +90,7 @@ class Plot:
         self.scale_type= ['lin', 'lin']
         self.x_boundary = []
         self.y_boundary = []
+        self.scale_unit_style = '{:.2n}'
 
         self.x_axis_numbers = []
         self.y_axis_numbers = []
@@ -120,6 +121,8 @@ class Plot:
         self.plot_drag_mouse_clicked = False
         self.plot_drag_mouse_pos = [0, 0]
         self.__add_home_button()
+        self.__add_scale_units_button()
+        self.__scale_unit_iter = 0
 
     # Datasets
 
@@ -231,6 +234,31 @@ class Plot:
         self.home_button = Button(self.canvas, text='\u2302', width=2, command=self.auto_focus, bg=self.highlight_colors[1])
         self.home_button.place(x=self.canvas_boundary[2] - 5,y=self.canvas_boundary[1] - 5, anchor=SE)
 
+    def __add_scale_units_button(self):
+        
+        self.scale_unit_button = Button(self.canvas, text='e', width=2, command=self.change_unit_scale, bg=self.highlight_colors[1])
+        self.scale_unit_button.place(x=self.canvas_boundary[2] - 35,y=self.canvas_boundary[1] - 5, anchor=SE)
+
+    def change_unit_scale(self):
+        self.__scale_unit_iter += 1
+        self.__scale_unit_iter %= 3
+
+        if self.__scale_unit_iter == 0:
+            tex = 'e'
+            style = '{:.2n}'
+        elif self.__scale_unit_iter == 1:
+            tex = '%'
+            style = '{:.2e}'
+        elif self.__scale_unit_iter == 2:
+            tex = ','
+            style = '{:.2%}'
+
+        self.scale_unit_button.config(text = tex)
+        self.scale_unit_style = style
+        self.set_axis_numbers(len(self.x_axis_numbers) - 1, 'x')
+        self.set_axis_numbers(len(self.y_axis_numbers) - 1, 'y')
+
+
     # Ginput (Will be rewritten... will not clean up)
 
     def leftClick(self, event):
@@ -297,7 +325,7 @@ class Plot:
     def update_text(self, text, tag):
         text_item = self.find_tag_number(tag, self.plotted_text_tags)
         if text_item != None:
-            self.canvas.itemconfig(self.plotted_text[text_item], text = text)
+            self.plot.itemconfig(self.plotted_text[text_item], text = text)
             return
 
     # Axis
@@ -340,7 +368,7 @@ class Plot:
         elif textx != 'keep': self.canvas.itemconfig(self.xLabel, text=textx)
         if self.has_y_label == False:
             self.has_y_label = True
-            p1 = self.canvas_boundary[0] - 6*self.font_size
+            p1 = self.canvas_boundary[0] - 8*self.font_size
             p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2
             self.yLabel = self.canvas.create_text(p1, p2, font=self.font_type, 
                                     angle=90, text = texty, fill=self.fg_color)
@@ -350,7 +378,7 @@ class Plot:
 
         num_ticks = 10
         update_plot = True
-        self.remove_drawn_items(self.x_axis_numbers)
+        # self.remove_drawn_items(self.x_axis_numbers)
 
         if x_start == 'keep': x_start = self.x_boundary[0]
         if x_end == 'keep': x_end = self.x_boundary[-1]
@@ -395,7 +423,7 @@ class Plot:
             self.x_scale_factor = (x_end-x_start)/self.plot_dimensions[0]
 
             valueSize = (x_end-x_start)/num_ticks
-            step_size = self.plot_dimensions[0]/num_ticks
+            # step_size = self.plot_dimensions[0]/num_ticks
 
             for i in range(num_ticks+1):
                 self.x_boundary.append(x_start + i*valueSize)
@@ -412,17 +440,18 @@ class Plot:
             self.x_log_scale = [k, c]
 
             num_ticks = round(math.log10(x_end/x_start))
-            step_size = self.plot_dimensions[0]/num_ticks
+            # step_size = self.plot_dimensions[0]/num_ticks
 
             for i in range(num_ticks+1):
                 self.x_boundary.append(x_end * 10**(-num_ticks+i))
         
-        for i in range(num_ticks + 1):
-            pos = [self.canvas_boundary[0] + i*step_size, 
-                   self.canvas_boundary[3] + self.font_size/2]
-            tex = str(round(self.x_boundary[i],2))
-            self.x_axis_numbers.append(self.canvas.create_text(pos, anchor=N,
-                            fill=self.fg_color, font=self.font_type, text=tex))
+        self.set_axis_numbers(num_ticks, 'x')
+        # for i in range(num_ticks + 1):
+        #     pos = [self.canvas_boundary[0] + i*step_size, 
+        #            self.canvas_boundary[3] + self.font_size/2]
+        #     tex = self.scale_unit_style.format(self.x_boundary[i])
+        #     self.x_axis_numbers.append(self.canvas.create_text(pos, anchor=N,
+        #                     fill=self.fg_color, font=self.font_type, text=tex))
 
         if self.has_x_grid == True: self.set_grid_lines('x', num_ticks)
         elif self.has_x_grid == False: self.remove_grid_lines('x')
@@ -433,7 +462,7 @@ class Plot:
         
         num_ticks = 10
         update_plot = True
-        self.remove_drawn_items(self.y_axis_numbers)
+        # self.remove_drawn_items(self.y_axis_numbers)
         
         if y_start == 'keep': y_start = self.y_boundary[0]
         if y_end == 'keep': y_end = self.y_boundary[-1]
@@ -478,7 +507,7 @@ class Plot:
             self.y_scale_factor = (y_end-y_start)/self.plot_dimensions[1]
 
             valueSize = (y_end-y_start)/num_ticks
-            step_size = self.plot_dimensions[1]/num_ticks
+            # step_size = self.plot_dimensions[1]/num_ticks
 
             for i in range(num_ticks+1):
                 self.y_boundary.append(y_start + i*valueSize)
@@ -494,22 +523,44 @@ class Plot:
             self.y_log_scale = [k, c]
 
             num_ticks = round(math.log10(y_end/y_start))
-            step_size = self.plot_dimensions[1]/num_ticks
+            # step_size = self.plot_dimensions[1]/num_ticks
 
             for i in range(num_ticks+1):
                 self.y_boundary.append(y_end * 10**(-num_ticks+i))
 
-        for i in range(num_ticks + 1):
-            pos = [self.canvas_boundary[0] - self.font_size/2, 
-                   self.canvas_boundary[3] - i*step_size]
-            tex = str(round(self.y_boundary[i],5))
-            self.y_axis_numbers.append(self.canvas.create_text(pos, anchor=E,
-                            fill=self.fg_color, font=self.font_type, text=tex))
+        self.set_axis_numbers(num_ticks, 'y')
+        # for i in range(num_ticks + 1):
+        #     pos = [self.canvas_boundary[0] - self.font_size/2, 
+        #            self.canvas_boundary[3] - i*step_size]
+        #     tex = self.scale_unit_style.format(self.y_boundary[i])
+        #     self.y_axis_numbers.append(self.canvas.create_text(pos, anchor=E,
+        #                     fill=self.fg_color, font=self.font_type, text=tex))
 
         if self.has_y_grid == True: self.set_grid_lines('y', num_ticks)
         elif self.has_y_grid == False: self.remove_grid_lines('y')
 
         if update_plot: self.update_plots('all')
+
+    def set_axis_numbers(self, num_ticks, order):
+
+        if order == 'x':
+            self.remove_drawn_items(self.x_axis_numbers)
+            step_size = self.plot_dimensions[0]/num_ticks
+            for i in range(num_ticks + 1):
+                pos = [self.canvas_boundary[0] + i*step_size, 
+                   self.canvas_boundary[3] + self.font_size/2]
+                tex = self.scale_unit_style.format(self.x_boundary[i])
+                self.x_axis_numbers.append(self.canvas.create_text(pos, anchor=N,
+                            fill=self.fg_color, font=self.font_type, text=tex))
+        elif order == 'y':
+            self.remove_drawn_items(self.y_axis_numbers)
+            step_size = self.plot_dimensions[1]/num_ticks
+            for i in range(num_ticks + 1):
+                pos = [self.canvas_boundary[0] - self.font_size/2, 
+                   self.canvas_boundary[3] - i*step_size]
+                tex = self.scale_unit_style.format(self.y_boundary[i])
+                self.y_axis_numbers.append(self.canvas.create_text(pos, anchor=E,
+                            fill=self.fg_color, font=self.font_type, text=tex))
 
     # Grid Lines
 
@@ -595,7 +646,7 @@ class Plot:
             elif pos[0] == 'S': yOffset = (self.plot_dimensions[1] 
                                            - 2*num_data*self.font_size)
             if pos[1] == 'W': xOffset = 2*self.font_size
-            elif pos[1] == 'E': xOffset = self.plot_dimensions[0] - text_length - 2
+            elif pos[1] == 'E': xOffset = self.plot_dimensions[0] - text_length
 
             for i in range(num_data):
                 self.legend_content.append(self.plot.create_text(
@@ -1080,12 +1131,13 @@ class Plot:
                 self.set_x_axis('keep', 'keep', 'log')
             elif self.scale_type[0] == 'log': 
                 self.set_x_axis('keep', 'keep', 'lin')
+                
         elif order == 'y':
             if self.scale_type[1] == 'lin': 
                 self.set_y_axis('keep', 'keep', 'log')
             elif self.scale_type[1] == 'log': 
                 self.set_y_axis('keep', 'keep', 'lin')
-        
+        self.auto_focus()
         self.update_plots('all')
         self.__update_editor_buttons('x_grid', 'x_linlog', 
                                      'y_grid', 'y_linlog')

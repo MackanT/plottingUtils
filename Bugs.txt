@@ -5,7 +5,7 @@
 
 11/30 -Fixed: find item can no longer select legend, probably a canvas -> dataCanvas issue....
 
-Adding loing legend does not move info -> cannot see all the text
+12/01 -Fixed: Adding loing legend does not move info -> cannot see all the text
 
 11/30 -Fixed: Log axis does not work (?) Might be cause negative data in test case, if so add protection against this!
 11/30 -Fixed: Setting log plot with axis = 0 -> crash
