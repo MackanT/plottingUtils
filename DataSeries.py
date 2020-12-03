@@ -71,8 +71,8 @@ class DataSeries:
                                        fill=self.color)
 
     def undraw_item(self, index):
-        for item in self.plotted_items: self.canvas.delete(item)
-        self.plotted_items = np.empty(len(index))
+        for item in self.plotted_items: self.canvas.delete(int(item))
+        self.plotted_items = np.empty(index)
 
     def move_item(self, index):
 
@@ -153,4 +153,5 @@ class DataSeries:
         return self.data_points[:,:]
 
     def clear_data(self):
+        self.undraw_item(0)
         self.data_points = np.empty(2)

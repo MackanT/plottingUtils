@@ -26,6 +26,8 @@ class Main():
         self.plot_canvas.add_text([3, 0.05], 'tatat', 'tex1')
         self.plot_canvas.update_text('wopp wopp', 'tex1')
 
+        # self.plot_canvas.clear_dataset('testData')
+
         self.mainloop()
 
     def mainloop(self):

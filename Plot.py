@@ -90,7 +90,7 @@ class Plot:
         self.scale_type= ['lin', 'lin']
         self.x_boundary = []
         self.y_boundary = []
-        self.scale_unit_style = '{:.2n}'
+        self.scale_unit_style = '{:.2f}'
         self.show_axis_numbers = True
 
         self.x_axis_numbers = []
@@ -119,40 +119,56 @@ class Plot:
 
         # Plot Editing Toold
         self.enable_plot_movement()
-        self.plot_drag_mouse_clicked = False
-        self.plot_drag_mouse_pos = [0, 0]
         self.__add_home_button()
         self.__add_scale_units_button()
-        self.__scale_unit_iter = 0
 
     # Datasets
 
     def add_dataset(self, tag):
+        """
+        Creates a Dataset series with assigned tag if it does not 
+        already exist. A dataset is needed for each series that is to be
+        plotted
+        """
         if self.find_dataset(tag) != None: return
         else: self.data_series.append(DataSeries(tag, self.plot))
 
     def remove_dataset(self, tag):
-        dataset = self.find_dataset(tag)
-        if dataset != None:
-            for i in range(len(self.data_series)):
-                if self.data_series[i].getTag() == tag:
-                    self.data_series.pop(i)
-                    dataset.clearData()
-                    return
+        """
+        Removes an existing datasets from memory and plotted view
+        """
+        for i in range(len(self.data_series)):
+            if self.data_series[i].get_tag() == tag:
+                dataset = self.find_dataset(tag)
+                dataset.clear_data()
+                self.data_series.pop(i)
+                return
 
     def clear_dataset(self, tag):
+        """
+        Removes dataset from plotted view but keeps it in memory
+        """
         dataset = self.find_dataset(tag)
-        if dataset != None: dataset.clearData()
+        if dataset != None: dataset.undraw_item(0)
 
     def remove_drawn_items(self, thisList):
-        for item in thisList: self.canvas.delete(item)            
+        """
+        Clears plotted content from the window itself
+        """
+        for item in thisList: self.canvas.delete(int(item))            
         thisList.clear()
 
     def find_dataset(self, tag):
+        """
+        Searches and returns the requested dataset
+        """
         for item in self.data_series:
             if item.get_tag() == tag: return item
 
     def find_tag_number(self, tag, search_list):
+        """
+        Returns index of requested tag in its appropriate list
+        """
         for i in range(len(search_list)):
             if search_list[i] == tag: return i
 
@@ -160,18 +176,29 @@ class Plot:
     # Drag and Drop screen
 
     def enable_plot_movement(self):
+        """
+        Adds mouse controll over the graph
+        """
+        self.plot_drag_mouse_clicked = False
+        self.plot_drag_mouse_pos = [0, 0]
+
         self.plot.bind('<ButtonPress-1>', self.mouse_pressed)
         self.plot.bind('<B1-Motion>', self.mouse_dragged)
         self.plot.bind('<ButtonRelease-1>', self.mouse_released)
         self.plot.bind('<MouseWheel>', self.mouse_scrolled)
 
     def mouse_pressed(self, event):
-
+        """
+        Actives movement of the graphed data
+        """
         if self.plot_editor_selected_counter != 1:
             self.plot_drag_mouse_clicked = True
             self.plot_drag_mouse_pos = [event.x, event.y]
 
     def mouse_dragged(self, event):
+        """
+        Allows for real time moving of the graphed data
+        """
 
         if self.plot_drag_mouse_clicked == True:
             delta_x = ((self.plot_drag_mouse_pos[0] - event.x) 
@@ -187,6 +214,9 @@ class Plot:
             self.plot_drag_mouse_pos = [event.x, event.y]
 
     def mouse_released(self, event):
+        """
+        Disables graph movement and does item placement
+        """
 
         if self.plot_drag_mouse_clicked == True:
             self.plot_drag_mouse_clicked = False
@@ -205,6 +235,9 @@ class Plot:
             self.raise_items()
 
     def mouse_scrolled(self, event):
+        """
+        Zoom in and out on graph
+        """
 
         if self.plot_editor_selected_counter != 1:
 
@@ -232,23 +265,35 @@ class Plot:
             self.update_plots('all')
 
     def __add_home_button(self):
-
+        """
+        Creates auto focus button on graph
+        """
         self.home_button = Button(self.canvas, text='\u2302', width=2, command=self.auto_focus, bg=self.highlight_colors[1])
         self.home_button.place(x=self.canvas_boundary[2] - 5,y=self.canvas_boundary[1] - 5, anchor=SE)
 
     def __add_scale_units_button(self):
+        """
+        Allows for manual switching of units on the axis numbers
+        self.__scale_unit_iter is default type which is float
+        """
+        
+        self.__scale_unit_iter = 0
         
         self.scale_unit_button = Button(self.canvas, text='e', width=2, command=self.change_unit_scale, bg=self.highlight_colors[1])
         self.scale_unit_button.place(x=self.canvas_boundary[2] - 35,y=self.canvas_boundary[1] - 5, anchor=SE)
 
     def change_unit_scale(self):
+        """
+        Keeps track of which units are printed on the axis
+        Sets and updates graph accordingly
+        """
         self.__scale_unit_iter += 1
         self.__scale_unit_iter %= 4
 
         if self.__scale_unit_iter == 0:
             self.show_axis_numbers = True
             tex = 'e'
-            style = '{:.2n}'
+            style = '{:.2f}'
         elif self.__scale_unit_iter == 1:
             tex = '%'
             style = '{:.2e}'
@@ -292,6 +337,10 @@ class Plot:
     # Plot Properties
 
     def set_line_color(self, color, tag):
+        """
+        Adds dataset if it does not exist and then 
+        sets color of specified dataset
+        """
         dataset = self.find_dataset(tag)
         if dataset != None: 
             self.add_dataset(tag)
@@ -299,6 +348,11 @@ class Plot:
         dataset.set_color(color)
 
     def set_line_width(self, lineWidth, tag):
+        """
+        Adds dataset if it does not exist and then 
+        sets width of specified dataset lines
+        """
+
         dataset = self.find_dataset(tag)
         if dataset != None: 
             self.add_dataset(tag)
@@ -306,6 +360,11 @@ class Plot:
         dataset.set_line_width(lineWidth)
 
     def set_dot_size(self, size, tag):
+        """
+        Adds dataset if it does not exist and then 
+        sets size of specified datasets scatter points
+        """
+
         dataset = self.find_dataset(tag)
         if dataset != None: 
             self.add_dataset(tag)
@@ -315,6 +374,9 @@ class Plot:
     # Plot Text
 
     def set_title(self, text):
+        """
+        Sets/Updates title
+        """
         if self.has_title == False:
             self.has_title = True
             self.title = self.canvas.create_text(self.screen_width/2, 
@@ -323,6 +385,9 @@ class Plot:
         else: self.canvas.itemconfig(self.title, text = text)         
 
     def add_text(self, position, text, tag):
+        """
+        Sets text on graph
+        """
         scaled_pos = [self.scale_vector(position[0], 'x'), 
                       self.scale_vector(position[1], 'y')]
         self.plotted_text.append(self.plot.create_text(scaled_pos, anchor=NW,
@@ -330,6 +395,9 @@ class Plot:
         self.plotted_text_tags.append(tag)
 
     def update_text(self, text, tag):
+        """
+        Updates text on graph
+        """
         text_item = self.find_tag_number(tag, self.plotted_text_tags)
         if text_item != None:
             self.plot.itemconfig(self.plotted_text[text_item], text = text)
@@ -338,7 +406,10 @@ class Plot:
     # Axis
 
     def auto_focus(self, *args):
-        
+        """
+        Estimates a good x and y scale for the plotted data by
+        finding the min/max x/y for all data
+        """
         first_data_serie = True
 
         for item in self.data_series:
@@ -360,6 +431,7 @@ class Plot:
         delta_x = (max_x - min_x) / 10
         delta_y = (max_y - min_y) / 10
 
+        # Used by log axis to auto set when changing lin/log
         for name in args:
             if name == 'axis_x': return [min_x - delta_x, max_x + delta_x]
             elif name == 'axis_y': return [min_y - delta_y, max_y + delta_y]
@@ -369,7 +441,9 @@ class Plot:
         self.update_plots('all')
 
     def set_labels(self, textx, texty):
-
+        """
+        Sets/Updates axis labels
+        """
         if self.has_x_label == False:
             self.has_x_label = True
             p1 = self.screen_width/2
@@ -377,6 +451,7 @@ class Plot:
             self.xLabel = self.canvas.create_text(p1, p2, font=self.font_type,
                                                 text = textx, fill=self.fg_color)
         elif textx != 'keep': self.canvas.itemconfig(self.xLabel, text=textx)
+
         if self.has_y_label == False:
             self.has_y_label = True
             p1 = self.canvas_boundary[0] - 8*self.font_size
@@ -386,21 +461,29 @@ class Plot:
         elif texty != 'keep': self.canvas.itemconfig(self.yLabel, text=texty)
 
     def set_zero(self, start, end, order):
+        """
+        Finds the position of 0 used by linear graphs as an additive factor
+        """
+
+        if order == 'x': plot_dim = self.plot_dimensions[0]; numerator = start
+        elif order == 'y': plot_dim = self.plot_dimensions[1]; numerator = end
+        common_term = plot_dim/(start - end)
+        abs_term = abs(numerator)/(abs(start) + abs(end))
 
         if order == 'x':
-            common_term = self.plot_dimensions[0]/(start - end)
-            abs_term = abs(start)/(abs(start) + abs(end))
             if end < 0: self.x0 = common_term * end
-            elif start > 0: self.x0 = common_term * (start)
-            else: self.x0 = abs_term * self.plot_dimensions[0]
+            elif start > 0: self.x0 = common_term * start
+            else: self.x0 = abs_term * plot_dim
         elif order == 'y':
-            common_term = self.plot_dimensions[1]/(start - end)
-            abs_term = abs(end)/(abs(start) + abs(end))
             if end < 0: self.y0 = common_term*abs(end)
-            elif start > 0: self.y0 = -common_term*start + self.plot_dimensions[1]
-            else: self.y0 = abs_term * self.plot_dimensions[1]
+            elif start > 0: self.y0 = -common_term*start + plot_dim
+            else: self.y0 = abs_term * plot_dim
 
     def set_x_axis(self, x_start, x_end, *args):
+        """
+        Sets X-Axis with all possible arguments. 
+        Also auto sets axis numbers and grid if they are enabled
+        """
 
         num_ticks = 10
         update_plot = True
@@ -445,11 +528,8 @@ class Plot:
             
         elif self.scale_type[0] == 'log':
             
-            # if x_start <= 0: 
-            #     x_start = 1e-3
-            #     x_end = 1e3
+            if x_start <= 0: x_start, x_end = self.log_scale('axis_x')
             self.x_scale_factor = (x_end-x_start)/self.plot_dimensions[0]
-
             k = (x_start-x_end)/(math.log10(x_start)-math.log10(x_end))
             c = x_end - k * math.log10(x_end)
             self.x_log_scale = [k, c]
@@ -467,10 +547,14 @@ class Plot:
         if update_plot: self.update_plots('all')
 
     def set_y_axis(self, y_start, y_end, *args):
-        
+        """
+        Sets Y-Axis with all possible arguments. 
+        Also auto sets axis numbers and grid if they are enabled
+        """
+
         num_ticks = 10
         update_plot = True
-        auto:focus = False
+        auto_focus = False
 
         if y_start == 'keep': y_start = self.y_boundary[0]
         if y_end == 'keep': y_end = self.y_boundary[-1]
@@ -512,11 +596,9 @@ class Plot:
                 self.y_boundary.append(y_start + i*valueSize)
 
         elif self.scale_type[1] == 'log':
-            if y_start <= 0: 
-                y_start = 1e-3
-                y_end = 1e0
+            
+            if y_start <= 0: y_start, y_end = self.log_scale('axis_y')
             self.y_scale_factor = (y_end-y_start)/self.plot_dimensions[1]
-
             k = (y_start-y_end)/(math.log10(y_start)-math.log10(y_end))
             c = y_end - k * math.log10(y_end)
             self.y_log_scale = [k, c]
@@ -527,13 +609,16 @@ class Plot:
                 self.y_boundary.append(y_end * 10**(-num_ticks+i))
 
         self.set_axis_numbers(num_ticks, 'y')
-
         if self.has_y_grid == True: self.set_grid_lines('y', num_ticks)
         elif self.has_y_grid == False: self.remove_grid_lines('y')
 
         if update_plot: self.update_plots('all')
 
     def set_axis_numbers(self, num_ticks, order):
+        """
+        Called on to update axis numbers to viually 
+        show where data is located
+        """
 
         if order == 'x':
             if self.show_axis_numbers == False:
@@ -562,9 +647,24 @@ class Plot:
                                             anchor=E, fill=self.fg_color, 
                                             font=self.font_type, text=tex))
 
+    def log_scale(self, order):
+        """
+        Called upon to estimate a good plot focus for log graphs
+        Estimates by rounding data to nearest power of 10
+        """
+        data_low, data_high = self.auto_focus(order)
+        power_low = round(math.log10(abs(data_low)))
+        power_high = round(math.log10(abs(data_high)))
+
+        if order == 'axis_x': return [10**(-power_low), 10**power_high]
+        elif order =='axis_y': return [10**power_low, 10**power_high]
+
     # Grid Lines
 
     def __grid_x(self, num_ticks):
+        """
+        Adds x gridlines to plot
+        """
         self.remove_grid_lines('x')
         self.has_x_grid = True
         if self.scale_type[0] == 'lin':    
@@ -580,6 +680,10 @@ class Plot:
                     self.x_grid_lines.append(self.plot.create_line(pos, fill="gray"))
     
     def __grid_y(self, num_ticks):
+        """
+        Adds y gridlines to plot
+        """
+
         self.remove_grid_lines('y')
         self.has_y_grid = True
         if self.scale_type[1] == 'lin':
@@ -595,6 +699,10 @@ class Plot:
                     self.y_grid_lines.append(self.plot.create_line(pos, fill="gray"))
 
     def set_grid_lines(self, order, num_ticks):
+        """
+        Sets requested gridlines
+        """
+
         if order == 'x':
             self.has_x_grid = True
             self.__grid_x(num_ticks)
@@ -610,6 +718,9 @@ class Plot:
         self.raise_items()
 
     def remove_grid_lines(self, order):
+        """
+        Removes requested gridlines
+        """
         if order == 'x': 
             for item in self.x_grid_lines:
                 self.plot.delete(item)
