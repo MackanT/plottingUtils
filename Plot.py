@@ -1021,13 +1021,16 @@ class Plot:
                     point = dataset.get_points()
                     new_x = self.scale_vector(point[0,:], 'x')
                     new_y = self.scale_vector(point[1,:], 'y')
-                    new_index = self.animationScrollbar.get() if dataset.is_animated() == True else 0
+                    if dataset.is_animated() == True: 
+                        new_index = self.animationScrollbar.get()
+                    else: 0
                     dataset.update_item(new_x, new_y, new_index)
             for i in range(len(self.plotted_text)):      
                 position = self.plotted_text_position[i]
                 scaled_pos = [self.scale_vector(position[0], 'x'), 
-                      self.scale_vector(position[1], 'y')]
-                self.plot.moveto(self.plotted_text, scaled_pos[0], scaled_pos[1])
+                              self.scale_vector(position[1], 'y')]
+                self.plot.moveto(self.plotted_text[i], scaled_pos[0], 
+                                 scaled_pos[1])
                 
     def enable_animator(self, length):
         if self.has_animation == False:
