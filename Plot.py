@@ -775,6 +775,23 @@ class Plot:
         if order == 'axis_x': return [10**(-power_low), 10**power_high]
         elif order =='axis_y': return [10**power_low, 10**power_high]
 
+    def set_axis_scale_type(self, *args):
+        """
+        Automatically Sets scale type:
+        Options: digit, e, %, time, ''
+        """
+        for name in args:
+
+            if name == 'digit': self.__scale_unit_iter = 3
+            elif name == 'e': self.__scale_unit_iter = 0
+            elif name == '%': self.__scale_unit_iter = 1
+            elif name == '': self.__scale_unit_iter = 2
+            else: return
+
+            self.change_unit_scale()
+            return
+            
+
     # Grid Lines
 
     def __grid_x(self, num_ticks):
