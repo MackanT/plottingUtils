@@ -528,6 +528,7 @@ class Plot:
         for item in self.data_series:
             if item.get_tag() != 'bFit': 
                 points = np.array(item.get_points())
+
                 if first_data_serie == True:
                     first_data_serie = False
 
@@ -541,8 +542,10 @@ class Plot:
                     if np.min(points[1,:]) < min_y: min_y = np.min(points[1,:])
                     if np.max(points[1,:]) < max_y: max_y = np.max(points[1,:])
         
-        delta_x = (max_x - min_x) / 10
-        delta_y = (max_y - min_y) / 10
+        if min_x != max_x: delta_x = (max_x - min_x) / 10
+        else: delta_x = 2
+        if min_y != max_y: delta_y = (max_y - min_y) / 10
+        else: delta_y = 2
 
         # Used by log axis to auto set when changing lin/log
         for name in args:
@@ -847,13 +850,19 @@ class Plot:
 
     # Legend
 
-    def set_legend(self, names, values, pos, *tags):
+    def set_legend(self, names, values, *args):
         
         num_data = len(values)
 
         if self.has_legend == False:
             self.has_legend = True
-            self.legend_pos = pos
+
+            if not args: pos = self.legend_pos
+            elif args == 'NE': self.legend_pos = 'NE'
+            elif args == 'NW': self.legend_pos = 'NW'
+            elif args == 'SE': self.legend_pos = 'SE'
+            elif args == 'SW': self.legend_pos = 'SW'
+            pos = self.legend_pos
 
             cond1 = not isinstance(names, list)
             cond2 = len(values) > 1
@@ -988,7 +997,7 @@ class Plot:
         dataset.set_plot_type(plot_type)
         dataset.draw(plot_range)
 
-        if self.has_legend == True: self.set_legend('', '', '', 'graph')
+        if self.has_legend == True: self.set_legend('', '')
 
     ### nPart of ginput!  
     def gen_x_path(self, points, x_start, x_end):
@@ -1023,7 +1032,7 @@ class Plot:
                     new_y = self.scale_vector(point[1,:], 'y')
                     if dataset.is_animated() == True: 
                         new_index = self.animationScrollbar.get()
-                    else: 0
+                    else: new_index = 0
                     dataset.update_item(new_x, new_y, new_index)
             for i in range(len(self.plotted_text)):      
                 position = self.plotted_text_position[i]
