@@ -12,9 +12,8 @@ class Plot:
         # Dimensions
         self.screen_width = width
         self.screen_height = height
-        self.screen_padding_y = width/10
-        self.screen_padding_x = height/12
-        self.font_size = int(width/100)
+        self.offset_y = 85
+        self.font_size = 10
         self.font_type = 'arial %d' %self.font_size
         
         # Colors
@@ -36,27 +35,25 @@ class Plot:
         self.has_y_label = False
         self.has_legend = False
         self.has_graph = False
+        self.has_colorbar = False
 
         # Graphical Window
         self.root_window = Tk()
         self.root_window.title(window_name)
+        self.root_window.geometry('%dx%d'%(self.screen_width, self.screen_height))
+        self.root_window.configure(bg=self.bg_color)
+        self.root_window.bind('<Configure>', self.resize_screen)
+
 
         self.canvas = Canvas(self.root_window, width = self.screen_width, 
-                             height = self.screen_height, bg=self.bg_color)
-        
-        offset_x = 2*self.screen_padding_x
-        offset_y = self.screen_padding_y
-        canvas_width = width-2*self.screen_padding_x
-        canvas_height = height-2*self.screen_padding_y/3
+                             height = self.screen_height, bg=self.bg_color, 
+                             bd=0, highlightthickness=0)
+        self.set_canvas_dimensions()
+        self.canvas.place(x=0, y= 0)
 
-        self.canvas_boundary = [offset_x, offset_y, canvas_width, canvas_height]
-        self.canvas.pack()
-
-        self.plot_dimensions = [int(self.canvas_boundary[2]-self.canvas_boundary[0]), 
-                                int(self.canvas_boundary[3]-self.canvas_boundary[1])]
         self.plot = Canvas(self.root_window, width = self.plot_dimensions[0], 
-                           height = self.plot_dimensions[1], bg='#ffffff')
-        self.plot.place(x = offset_x, y = offset_y ,anchor = NW)
+                           height = self.plot_dimensions[1], bg='#ffffff', bd=0)
+        self.plot.place(x = self.offset_x, y = self.offset_y ,anchor = NW)
 
         # Ginput
         """
@@ -82,7 +79,7 @@ class Plot:
                 os.makedirs(self.file_save_location)
 
         """
-        rewrite as nicer array of scale factors....
+        rewrite as nicer array of scale factors.... Maybe??
         """
         # Scaling Factors
         self.x_scale_factor = 0
@@ -92,6 +89,7 @@ class Plot:
         self.y_boundary = []
         self.scale_unit_style = '{:.2f}'
         self.show_axis_numbers = True
+        self.legend_pos = 'NE'
 
         self.x_axis_numbers = []
         self.y_axis_numbers = []
@@ -101,20 +99,28 @@ class Plot:
         self.legend_markers = []
         self.plotted_text = []
         self.plotted_text_tags = []
+        self.plotted_text_position = []
         self.data_series = []
 
         self.color_bar = []
+        self.color_bar_text = []
 
         self.plotted_items = [] # Not in use anymore??? Only currently best fit = broken
         
         # Editing Tools
         self.add_dataset('bFit')
         self.root_window.bind('<e>', self.__open_plot_editor)
+        self.editor_window = Tk()
+        self.editor_window.title('Plot Editor')
+        self.editor_window.geometry('750x230')
+        self.editor_window.withdraw()
+        
         self.has_plot_editor = False
         self.plot_editor_selected_counter = 0
         self.plot_editor_selected_item = None
-        self.editor_canvas = Canvas(self.root_window, width = self.screen_width, 
+        self.editor_canvas = Canvas(self.editor_window, width = self.screen_width, 
                                     height = 230, bg=self.highlight_colors[3])
+        self.editor_canvas.place(x=0, y=0)
         self.generate_plot_editor()
 
         # Plot Editing Toold
@@ -173,6 +179,112 @@ class Plot:
             if search_list[i] == tag: return i
 
 
+    # Resize Screen    
+
+    def set_canvas_dimensions(self):
+        """
+        Updates Screen Dimensions to allow for screen resizing
+        """
+        self.screen_padding_x = self.screen_height/12
+        self.offset_x = 2*self.screen_padding_x
+        
+        canvas_width = self.screen_width-2*self.screen_padding_x
+        canvas_height = self.screen_height-2*self.offset_y/3
+
+        self.canvas_boundary = [self.offset_x, self.offset_y, canvas_width, canvas_height]
+        self.plot_dimensions = [int(self.canvas_boundary[2]-self.canvas_boundary[0]), 
+                                int(self.canvas_boundary[3]-self.canvas_boundary[1])]
+
+    def resize_screen(self, event):
+        """
+        Handles Resize and scaling of entire window
+        """
+
+        screen_size = self.root_window.geometry()
+        plus_location = screen_size.find('+')
+        x_position = screen_size.find('x')
+        
+        screen_width = int(screen_size[0:x_position])
+        screen_height = int(screen_size[x_position+1:plus_location])
+
+        width_delta = screen_width / self.screen_width
+        height_delta = screen_height / self.screen_height
+
+        if width_delta == 1 and height_delta == 1: return
+        
+        self.screen_width = screen_width
+        self.screen_height = screen_height
+
+        self.set_canvas_dimensions()
+        self.canvas.config(width = self.screen_width, 
+                           height=self.screen_height)
+
+        self.plot.config(width = self.plot_dimensions[0] * width_delta, 
+                         height=self.plot_dimensions[1] * height_delta)
+        self.plot.place(x = self.offset_x, y = self.offset_y ,anchor = NW)
+        self.auto_focus()
+
+        if self.has_title: self.canvas.moveto(self.title, self.screen_padding_x 
+                                            + self.plot_dimensions[0]/2, 
+                                            2*self.font_size)
+        if self.has_y_label: 
+            p1 = self.canvas_boundary[0] - 8*self.font_size
+            p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2
+            self.canvas.moveto(self.y_label, p1, p2)
+        if self.has_x_label:
+            p1 = self.screen_width/2
+            p2 = self.canvas_boundary[3] + 3*self.font_size
+            self.canvas.moveto(self.x_label, p1, p2)
+        if self.has_colorbar:
+            
+            stepLength = self.plot_dimensions[1]/len(self.color_bar)
+            for i in range(len(self.color_bar)): 
+
+                p1 = self.canvas_boundary[2] + self.font_size
+                p2 = self.canvas_boundary[3] - i*stepLength
+                p3 = self.canvas_boundary[2] + 2.5*self.font_size
+                p4 = self.canvas_boundary[3] - (i+1)*stepLength
+                self.canvas.coords(int(self.color_bar[i]), p1, p2, p3, p4)
+       
+            stepLength = self.plot_dimensions[1]/(len(self.color_bar_text)-1)
+            for i in range(len(self.color_bar_text)):
+                p1 = self.canvas_boundary[2] + 3*self.font_size
+                p2 = self.canvas_boundary[3] - i*stepLength
+                self.canvas.moveto(self.color_bar_text[i], x = p1, y = p2)
+        if self.has_legend:
+            
+            text_len = 0
+            for item in self.legend_content:
+                content = len(self.plot.itemcget(item, 'text'))
+                if content > text_len: text_len = content
+            text_len *= 3*self.font_size/4
+            
+            pos = self.legend_pos
+
+            if pos[0] == 'N': yOffset = self.font_size
+            elif pos[0] == 'S': yOffset = (self.plot_dimensions[1] 
+                                           - 2*len(self.legend_content)*self.font_size)
+            if pos[1] == 'W': xOffset = 2*self.font_size
+            elif pos[1] == 'E': xOffset = self.plot_dimensions[0] - text_len
+
+            for i in range(len(self.legend_content)):
+                self.plot.moveto(self.legend_content[i], xOffset, 
+                                 yOffset + 2*i*self.font_size)
+            
+            xOffset -= 3/2*self.font_size
+
+            for i in range(len(self.legend_markers)):
+                self.plot.moveto(self.legend_markers[i], xOffset, 
+                                 yOffset + 2*i*self.font_size)
+        
+        self.home_button.place(x = self.canvas_boundary[2] - 5, 
+                               y = self.canvas_boundary[1] - 5)
+        self.scale_unit_button.place(x = self.canvas_boundary[2] - 35,
+                                     y = self.canvas_boundary[1] - 5)
+
+        self.raise_items()        
+
+
     # Drag and Drop screen
 
     def enable_plot_movement(self):
@@ -189,7 +301,7 @@ class Plot:
 
     def mouse_pressed(self, event):
         """
-        Actives movement of the graphed data
+        Activates movement of the graphed data
         """
         if self.plot_editor_selected_counter != 1:
             self.plot_drag_mouse_clicked = True
@@ -381,13 +493,14 @@ class Plot:
             self.has_title = True
             self.title = self.canvas.create_text(self.screen_width/2, 
                         4*self.font_size, font='arial %d' %(2*self.font_size), 
-                        text = text, fill=self.fg_color)
+                        text = text, fill=self.fg_color, anchor='center')
         else: self.canvas.itemconfig(self.title, text = text)         
 
     def add_text(self, position, text, tag):
         """
         Sets text on graph
         """
+        self.plotted_text_position.append(position)
         scaled_pos = [self.scale_vector(position[0], 'x'), 
                       self.scale_vector(position[1], 'y')]
         self.plotted_text.append(self.plot.create_text(scaled_pos, anchor=NW,
@@ -447,18 +560,18 @@ class Plot:
         if self.has_x_label == False:
             self.has_x_label = True
             p1 = self.screen_width/2
-            p2 = self.canvas_boundary[3] + 4*self.font_size
-            self.xLabel = self.canvas.create_text(p1, p2, font=self.font_type,
+            p2 = self.canvas_boundary[3] + 3*self.font_size
+            self.x_label = self.canvas.create_text(p1, p2, font=self.font_type,
                                                 text = textx, fill=self.fg_color)
-        elif textx != 'keep': self.canvas.itemconfig(self.xLabel, text=textx)
+        elif textx != 'keep': self.canvas.itemconfig(self.x_label, text=textx)
 
         if self.has_y_label == False:
             self.has_y_label = True
             p1 = self.canvas_boundary[0] - 8*self.font_size
             p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2
-            self.yLabel = self.canvas.create_text(p1, p2, font=self.font_type, 
+            self.y_label = self.canvas.create_text(p1, p2, font=self.font_type, 
                                     angle=90, text = texty, fill=self.fg_color)
-        elif texty != 'keep': self.canvas.itemconfig(self.yLabel, text=texty)
+        elif texty != 'keep': self.canvas.itemconfig(self.y_label, text=texty)
 
     def set_zero(self, start, end, order):
         """
@@ -740,6 +853,7 @@ class Plot:
 
         if self.has_legend == False:
             self.has_legend = True
+            self.legend_pos = pos
 
             cond1 = not isinstance(names, list)
             cond2 = len(values) > 1
@@ -909,7 +1023,12 @@ class Plot:
                     new_y = self.scale_vector(point[1,:], 'y')
                     new_index = self.animationScrollbar.get() if dataset.is_animated() == True else 0
                     dataset.update_item(new_x, new_y, new_index)
-    
+            for i in range(len(self.plotted_text)):      
+                position = self.plotted_text_position[i]
+                scaled_pos = [self.scale_vector(position[0], 'x'), 
+                      self.scale_vector(position[1], 'y')]
+                self.plot.moveto(self.plotted_text, scaled_pos[0], scaled_pos[1])
+                
     def enable_animator(self, length):
         if self.has_animation == False:
             self.animationScrollbar = Scale(self.canvas, from_=1, to=length, 
@@ -946,6 +1065,7 @@ class Plot:
     def colorbar(self, colors, values, steps, tag):
         for item in self.color_bar: self.canvas.delete(item)
         self.color_bar.clear()
+        self.has_colorbar = True
         
         num = int(len(colors)/steps)
         stepLength = self.plot_dimensions[1]/steps
@@ -966,7 +1086,7 @@ class Plot:
         for i in range(len(values)):
             p1 = xPos + 3*self.font_size
             p2 = yPos - i*stepLength
-            self.color_bar.append(self.canvas.create_text(p1, p2, anchor=W, 
+            self.color_bar_text.append(self.canvas.create_text(p1, p2, anchor=W, 
                                   font=self.font_type, text = values[i]))
 
     # Is this even in use???
@@ -1021,12 +1141,12 @@ class Plot:
         if self.has_plot_editor == False:
             self.update_editor()
             self.has_plot_editor = True
-            self.editor_canvas.pack()
+            self.editor_window.deiconify()
 
     def __close_editor(self):
         if self.has_plot_editor == True:
             self.has_plot_editor = False
-            self.editor_canvas.forget()
+            self.editor_window.withdraw()
 
     def update_editor(self):
         self.__update_editor_buttons('x_grid', 'y_grid', 'x_linlog','y_linlog', 

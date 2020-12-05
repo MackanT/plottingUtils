@@ -22,6 +22,11 @@ drag and drop screen in log graph....
 
 11/29 -Fixed: switching lin/| log does not remove old lines
 
+auto-set axis does not work when plotting only 1 point. Since x_min = x_max, delta_x = x_min-x_max -> same value all points....
+auto set legend in a corner
+
+axis numbers time rep
+
 
 Changelog:
 
