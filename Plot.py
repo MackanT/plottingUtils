@@ -752,7 +752,10 @@ class Plot:
                 pos = [self.canvas_boundary[0] + i*step_size, 
                        self.canvas_boundary[3] + self.font_size/2]
                 if self.show_axis_custom == 'time':
-                    tex = str(int(self.x_boundary[i])%24).zfill(2) + ':00'
+                    hour = int(self.x_boundary[i]%24)
+                    minute = int(60*(self.x_boundary[i]%24 
+                              - hour))
+                    tex = str(hour).zfill(2) + ':' + str(minute).zfill(2)
                 else: tex = self.scale_unit_style.format(self.x_boundary[i])
                 self.x_axis_numbers.append(self.canvas.create_text(pos, 
                                             anchor=N, fill=self.fg_color, 
