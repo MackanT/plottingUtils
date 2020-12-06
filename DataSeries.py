@@ -147,7 +147,7 @@ class DataSeries:
         self.data_points[index] = point
 
     def get_point(self, index):
-        return self.data_points[index,:]
+        return self.data_points[:,index]
 
     def get_points(self):
         return self.data_points[:,:]

@@ -1,8 +1,10 @@
 from tkinter import *
+import tkinter as tk
 from DataSeries import DataSeries
 import math
 import numpy as np
 import os
+from datetime import datetime
 
 class Plot:
 
@@ -315,13 +317,9 @@ class Plot:
 
             click_x = self.anti_scale_vector(event.x, 'x')
             click_y = self.anti_scale_vector(event.y, 'y')
-
-            print(click_x, click_y)
-
             closest_point = self.find_datapoint(click_x, click_y)
 
-            if np.linalg.norm(closest_point - [click_x, click_y]) > 2:
-                return
+            if np.linalg.norm(closest_point - [click_x, click_y]) > 2: return
             self.marked_points.append(closest_point)
             self.draw_point_marker()
 
@@ -406,9 +404,12 @@ class Plot:
         """
         Creates auto focus button on graph
         """
-        self.home_button = Button(self.canvas, text='\u2302', width=2, command=self.auto_focus, bg=self.highlight_colors[1])
-        self.home_button.place(x=self.canvas_boundary[2] - 5,y=self.canvas_boundary[1] - 5, anchor=SE)
-
+        self.home_button = Button(self.canvas, font='bold', text='\U0001f3e0', 
+                                  width=2, command=self.auto_focus, 
+                                  bg=self.highlight_colors[1])
+        self.home_button.place(x=self.canvas_boundary[2] - 5,
+                               y=self.canvas_boundary[1] - 5, anchor=SE)
+        
     def __add_scale_units_button(self):
         """
         Allows for manual switching of units on the axis numbers
@@ -417,8 +418,11 @@ class Plot:
         
         self.__scale_unit_iter = 0
         
-        self.scale_unit_button = Button(self.canvas, text='e', width=2, command=self.change_unit_scale, bg=self.highlight_colors[1])
-        self.scale_unit_button.place(x=self.canvas_boundary[2] - 35,y=self.canvas_boundary[1] - 5, anchor=SE)
+        self.scale_unit_button = Button(self.canvas, text='e', font='bold', 
+                                        width=2, command=self.change_unit_scale, 
+                                        bg=self.highlight_colors[1])
+        self.scale_unit_button.place(x=self.canvas_boundary[2] - 35,
+                                     y=self.canvas_boundary[1] - 5, anchor=SE)
 
     def change_unit_scale(self):
         """
@@ -436,7 +440,7 @@ class Plot:
             tex = '%'
             style = '{:.2e}'
         elif self.__scale_unit_iter == 2:
-            tex = '\u23F0'
+            tex = '\u23f0' #u23F0
             style = '{:.2%}'
         elif self.__scale_unit_iter == 3:
             self.show_axis_custom = 'time'
@@ -457,9 +461,10 @@ class Plot:
         """
         Creates data selection button
         """
-        self.datapoint_selector = Button(self.canvas, text='\u2316', width=2, command=self.select_datapoint, bg=self.highlight_colors[1])
+        self.datapoint_selector = Button(self.canvas, font='bold', text='\u270d', width=2, command=self.select_datapoint, bg=self.highlight_colors[1])
         self.datapoint_selector.place(x=self.canvas_boundary[2] - 65,y=self.canvas_boundary[1] - 5, anchor=SE)
-
+        # u2316
+        
     def select_datapoint(self):
         if self.datapoints_selection == False:
             self.datapoint_selector.config(bg=self.highlight_colors[2])
@@ -1249,13 +1254,19 @@ class Plot:
 
         for i in args:
             dataset = self.find_dataset(i)
-            data_name = self.file_save_location + '\\' + str(i) + '.txt'
+            if dataset == None: return
+
+            cur_time = str(datetime.now().time())[0:8]
+            cur_time = cur_time.replace(':', '_')
+            
+            data_name = self.file_save_location + '\\' + str(i) + '_' + cur_time + '.txt'
             data_file = open(data_name, 'w+')
             
-            for j in range(dataset.getNumberOfPoints()):
-                data = str(dataset.getPoint(j)).replace(" ", "")
-                data_file.write(data[1:-1] + '\n')
-            
+            data = dataset.get_points()
+            for i in range(np.size(data, 1)):
+                string = str(data[:,i])
+                data_file.write(string[1:-1] + '\n')
+
             data_file.close()
     
     def load_data(self, tag):
@@ -1289,7 +1300,7 @@ class Plot:
 
     def update_editor(self):
         self.__update_editor_buttons('x_grid', 'y_grid', 'x_linlog','y_linlog', 
-                                     'txt_input', 'animation_speed')
+                                     'txt_input', 'animation_speed', 'save_data')
 
     def generate_plot_editor(self):
 
@@ -1324,7 +1335,9 @@ class Plot:
         self.x_scale_steps.insert(0, '#Gridlines')
         self.x_scale_steps.place(x=10,y=112, anchor=NW)
         self.__add_focus_listeners(self.x_scale_steps)
-        self.x_scale_steps.bind("<Return>", lambda event: self.set_x_axis('keep','keep', int(self.x_scale_steps.get())))
+        self.x_scale_steps.bind("<Return>", lambda event: 
+                                self.set_x_axis('keep', 'keep', 
+                                int(self.x_scale_steps.get())))
 
         self.x_grid_button = Button(self.editor_canvas, text='On', width=5, 
                     command=lambda: self.__enable_grid('x'), 
@@ -1413,6 +1426,27 @@ class Plot:
         self.__add_focus_listeners(self.animation_speed_input)
         self.animation_speed_input.bind("<Return>", self.__set_animation_speed)
 
+        # Save/Load Data
+        self.editor_canvas.create_text(450, 10, anchor=W, text='Save Data')
+        self.editor_canvas.create_line(450,16,640,16)
+
+        self.om_variable = tk.StringVar(self.root_window)
+        self.om_variable.trace('w', self.__update_save_tag)
+        self.save_data_tag_selector = OptionMenu(self.editor_canvas, 
+                                            self.om_variable, '')
+        self.save_data_tag_selector.config(bg=self.bg_color, width=1)                                            
+        self.save_data_tag_selector.place(x=580, y=22)
+
+        self.save_data_button = Button(self.editor_canvas, font='bold', text='\U0001f4be', width=5, 
+                                command=lambda: self.save_data(self.om_variable.get()), 
+                                bg=self.bg_color)
+        self.save_data_button.place(x=640,y=22, width=40, anchor=NW)
+
+        self.save_data_name_color = self.editor_canvas.create_oval(450, 32, 458, 40, state='hidden')
+        self.save_data_name_selection = self.editor_canvas.create_text(465, 36, anchor=W, text='')
+
+
+
         # Best Fit, not in use
         # self.bestFitButton = Button(self.editor_canvas, text='Best Fit', command=self.__bestFit)
         # self.bestFitButton.place(x= 450, y = 10)
@@ -1488,6 +1522,22 @@ class Plot:
                 else: self.select_item_text_input.config(state='normal')
             elif button == 'animation_speed' and self.has_animation == False:
                 self.animation_speed_input.config(state='disabled')
+            elif button == 'save_data':
+                menu = self.save_data_tag_selector['menu']
+                menu.delete(0, 'end')
+                for item in self.data_series: 
+                    data_tag = item.get_tag()
+                    menu.add_command(label=data_tag, 
+                                     command=lambda value=data_tag: 
+                                     self.om_variable.set(value))
+
+    def __update_save_tag(self, *args):
+        
+        tag = self.om_variable.get()
+        tag_color = self.find_dataset(tag).get_color()
+
+        self.editor_canvas.itemconfig(self.save_data_name_selection, text=tag)
+        self.editor_canvas.itemconfig(self.save_data_name_color, fill=tag_color, state='normal')
 
     def __switch_linlog(self, order):
         
