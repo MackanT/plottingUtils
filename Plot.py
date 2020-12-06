@@ -1,5 +1,4 @@
 from tkinter import *
-import tkinter as tk
 from DataSeries import DataSeries
 import math
 import numpy as np
@@ -104,7 +103,11 @@ class Plot:
         self.plotted_text_position = []
         self.data_series = []
 
-        self.color_bar = []
+        self.color_bar = Canvas(self.root_window, width = 25, 
+                           height = self.plot_dimensions[1], 
+                           bg=self.fg_color, highlightthickness=0)
+        self.color_bar.place(x = self.canvas_boundary[2] + 10, 
+                             y = self.canvas_boundary[1])
         self.color_bar_text = []
 
         self.plotted_items = [] # Not in use anymore??? Only currently best fit = broken
@@ -232,6 +235,10 @@ class Plot:
         self.plot.place(x = self.offset_x, y = self.offset_y ,anchor = NW)
         self.auto_focus()
 
+        self.color_bar.config(height = self.plot_dimensions[1])
+        self.color_bar.place(x = self.canvas_boundary[2] + 10, 
+                             y = self.canvas_boundary[1])
+
         if self.has_title: self.canvas.moveto(self.title, self.screen_padding_x 
                                             + self.plot_dimensions[0]/2, 
                                             2*self.font_size)
@@ -244,21 +251,9 @@ class Plot:
             p2 = self.canvas_boundary[3] + 3*self.font_size
             self.canvas.moveto(self.x_label, p1, p2)
         if self.has_colorbar:
+            self.set_colorbar(self.color_bar_colors[0], 
+                              self.color_bar_colors[1], 1)
             
-            stepLength = self.plot_dimensions[1]/len(self.color_bar)
-            for i in range(len(self.color_bar)): 
-
-                p1 = self.canvas_boundary[2] + self.font_size
-                p2 = self.canvas_boundary[3] - i*stepLength
-                p3 = self.canvas_boundary[2] + 2.5*self.font_size
-                p4 = self.canvas_boundary[3] - (i+1)*stepLength
-                self.canvas.coords(int(self.color_bar[i]), p1, p2, p3, p4)
-       
-            stepLength = self.plot_dimensions[1]/(len(self.color_bar_text)-1)
-            for i in range(len(self.color_bar_text)):
-                p1 = self.canvas_boundary[2] + 3*self.font_size
-                p2 = self.canvas_boundary[3] - i*stepLength
-                self.canvas.moveto(self.color_bar_text[i], x = p1, y = p2)
         if self.has_legend:
             
             text_len = 0
@@ -273,7 +268,8 @@ class Plot:
             elif pos[0] == 'S': yOffset = (self.plot_dimensions[1] 
                                            - 2*len(self.legend_content)*self.font_size)
             if pos[1] == 'W': xOffset = 2*self.font_size
-            elif pos[1] == 'E': xOffset = self.plot_dimensions[0] - text_len
+            elif pos[1] == 'E': xOffset = (self.plot_dimensions[0] 
+                                           - 1.5*text_len)
 
             for i in range(len(self.legend_content)):
                 self.plot.moveto(self.legend_content[i], xOffset, 
@@ -434,7 +430,7 @@ class Plot:
 
         if self.__scale_unit_iter == 0:
             self.show_axis_custom = ''
-            tex = 'e'
+            tex = '\u2091'
             style = '{:.2f}'
         elif self.__scale_unit_iter == 1:
             tex = '%'
@@ -461,10 +457,14 @@ class Plot:
         """
         Creates data selection button
         """
-        self.datapoint_selector = Button(self.canvas, font='bold', text='\u270d', width=2, command=self.select_datapoint, bg=self.highlight_colors[1])
-        self.datapoint_selector.place(x=self.canvas_boundary[2] - 65,y=self.canvas_boundary[1] - 5, anchor=SE)
+        self.datapoint_selector = Button(self.canvas, font='bold', 
+                                                text='\U0001f4cc', width=2, 
+                                                command=self.select_datapoint, 
+                                                bg=self.highlight_colors[1])
+        self.datapoint_selector.place(x=self.canvas_boundary[2] - 65,
+                                      y=self.canvas_boundary[1] - 5, anchor=SE)
         # u2316
-        
+
     def select_datapoint(self):
         if self.datapoints_selection == False:
             self.datapoint_selector.config(bg=self.highlight_colors[2])
@@ -986,7 +986,8 @@ class Plot:
             elif pos[0] == 'S': yOffset = (self.plot_dimensions[1] 
                                            - 2*num_data*self.font_size)
             if pos[1] == 'W': xOffset = 2*self.font_size
-            elif pos[1] == 'E': xOffset = self.plot_dimensions[0] - text_length
+            elif pos[1] == 'E': xOffset = (self.plot_dimensions[0] 
+                                           - 1.5*text_length)
 
             for i in range(num_data):
                 self.legend_content.append(self.plot.create_text(
@@ -1206,32 +1207,28 @@ class Plot:
             colors = [dataset.get_color() for n in data_range]
         return colors
 
-    def colorbar(self, colors, values, steps, tag):
-        for item in self.color_bar: self.canvas.delete(item)
-        self.color_bar.clear()
+    def set_colorbar(self, color_start, color_end, values):   
+
         self.has_colorbar = True
-        
-        num = int(len(colors)/steps)
-        stepLength = self.plot_dimensions[1]/steps
-        yPos = self.canvas_boundary[3]
-        xPos = self.canvas_boundary[2]
+        self.color_bar.delete('all')
+        self.color_bar_colors = [color_start, color_end]
 
-        for i in range(steps): 
+        limit = self.plot_dimensions[1]
 
-            p1 = xPos + self.font_size
-            p2 = yPos - i*stepLength
-            p3 = xPos + 2.5*self.font_size
-            p4 = yPos - (i+1)*stepLength
-            self.color_bar.append(self.canvas.create_rectangle(p1, p2, p3, p4, 
-                                  fill=colors[num*i], width=0))
-        
-        stepLength = self.plot_dimensions[1]/(len(values)-1)
+        (r1,g1,b1) = self.color_bar.winfo_rgb(color_start)
+        (r2,g2,b2) = self.color_bar.winfo_rgb(color_end)
 
-        for i in range(len(values)):
-            p1 = xPos + 3*self.font_size
-            p2 = yPos - i*stepLength
-            self.color_bar_text.append(self.canvas.create_text(p1, p2, anchor=W, 
-                                  font=self.font_type, text = values[i]))
+        r_ratio = float(r2-r1) / limit
+        g_ratio = float(g2-g1) / limit
+        b_ratio = float(b2-b1) / limit
+
+        for i in range(limit):
+            nr = int(r1 + (r_ratio * i))
+            ng = int(g1 + (g_ratio * i))
+            nb = int(b1 + (b_ratio * i))
+            color = "#%4.4x%4.4x%4.4x" % (nr,ng,nb)
+            self.color_bar.create_line(0,i,25,i, fill=color)
+
 
     # Is this even in use???
     def clear_plot_data(self, tag):
@@ -1408,7 +1405,7 @@ class Plot:
 
         self.select_item_text_input = Entry(self.editor_canvas, fg='gray')
         self.select_item_text_input.insert(0, 'Text Editor')
-        self.select_item_text_input.place(x=230,y=92, anchor=NW)
+        self.select_item_text_input.place(x=230,y=96, anchor=NW)
         self.__add_focus_listeners(self.select_item_text_input)
         self.select_item_text_input.bind("<Return>", self.__select_item_change)
 
@@ -1428,13 +1425,13 @@ class Plot:
 
         # Save/Load Data
         self.editor_canvas.create_text(450, 10, anchor=W, text='Save Data')
-        self.editor_canvas.create_line(450,16,640,16)
+        self.editor_canvas.create_line(450,16,680,16)
 
-        self.om_variable = tk.StringVar(self.root_window)
+        self.om_variable = StringVar()
         self.om_variable.trace('w', self.__update_save_tag)
         self.save_data_tag_selector = OptionMenu(self.editor_canvas, 
                                             self.om_variable, '')
-        self.save_data_tag_selector.config(bg=self.bg_color, width=1)                                            
+        self.save_data_tag_selector.config(bg=self.bg_color, width=1, font='bold')                                            
         self.save_data_tag_selector.place(x=580, y=22)
 
         self.save_data_button = Button(self.editor_canvas, font='bold', text='\U0001f4be', width=5, 
@@ -1442,8 +1439,8 @@ class Plot:
                                 bg=self.bg_color)
         self.save_data_button.place(x=640,y=22, width=40, anchor=NW)
 
-        self.save_data_name_color = self.editor_canvas.create_oval(450, 32, 458, 40, state='hidden')
-        self.save_data_name_selection = self.editor_canvas.create_text(465, 36, anchor=W, text='')
+        self.save_data_name_color = self.editor_canvas.create_oval(450, 36, 458, 44, state='hidden')
+        self.save_data_name_selection = self.editor_canvas.create_text(465, 40, anchor=W, text='')
 
 
 
@@ -1538,6 +1535,7 @@ class Plot:
 
         self.editor_canvas.itemconfig(self.save_data_name_selection, text=tag)
         self.editor_canvas.itemconfig(self.save_data_name_color, fill=tag_color, state='normal')
+        self.om_variable.set(tag)
 
     def __switch_linlog(self, order):
         
