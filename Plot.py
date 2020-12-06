@@ -113,6 +113,7 @@ class Plot:
         self.editor_window = Tk()
         self.editor_window.title('Plot Editor')
         self.editor_window.geometry('750x230')
+        self.editor_window.protocol("WM_DELETE_WINDOW", self.__close_editor)
         self.editor_window.withdraw()
         
         self.has_plot_editor = False
@@ -1310,11 +1311,6 @@ class Plot:
         self.animation_speed_input.place(x=230,y=142, anchor=NW)
         self.__add_focus_listeners(self.animation_speed_input)
         self.animation_speed_input.bind("<Return>", self.__set_animation_speed)
-
-        # Exit
-        self.editor_exit_button = Button(self.editor_canvas, text='X', 
-                    bg=self.highlight_colors[0], command=self.__close_editor)
-        self.editor_exit_button.place(x= self.screen_width - 20, y = 10)
 
         # Best Fit, not in use
         # self.bestFitButton = Button(self.editor_canvas, text='Best Fit', command=self.__bestFit)
