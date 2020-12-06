@@ -88,7 +88,7 @@ class Plot:
         self.x_boundary = []
         self.y_boundary = []
         self.scale_unit_style = '{:.2f}'
-        self.show_axis_numbers = True
+        self.show_axis_custom = ''
         self.legend_pos = 'NE'
 
         self.x_axis_numbers = []
@@ -400,20 +400,25 @@ class Plot:
         Sets and updates graph accordingly
         """
         self.__scale_unit_iter += 1
-        self.__scale_unit_iter %= 4
+        self.__scale_unit_iter %= 5
 
         if self.__scale_unit_iter == 0:
-            self.show_axis_numbers = True
+            self.show_axis_custom = ''
             tex = 'e'
             style = '{:.2f}'
         elif self.__scale_unit_iter == 1:
             tex = '%'
             style = '{:.2e}'
         elif self.__scale_unit_iter == 2:
-            tex = ''
+            tex = '\u23F0'
             style = '{:.2%}'
         elif self.__scale_unit_iter == 3:
-            self.show_axis_numbers = False
+            self.show_axis_custom = 'time'
+            tex = ''
+            style = '{:.2f}'
+            # Add Time
+        elif self.__scale_unit_iter == 4:
+            self.show_axis_custom = 'blank'
             tex = ','
             style = ''
 
@@ -737,7 +742,7 @@ class Plot:
         """
 
         if order == 'x':
-            if self.show_axis_numbers == False:
+            if self.show_axis_custom == 'blank':
                 for item in self.x_axis_numbers: self.canvas.delete(item)
                 return
             self.remove_drawn_items(self.x_axis_numbers)
@@ -745,12 +750,14 @@ class Plot:
             for i in range(num_ticks + 1):
                 pos = [self.canvas_boundary[0] + i*step_size, 
                        self.canvas_boundary[3] + self.font_size/2]
-                tex = self.scale_unit_style.format(self.x_boundary[i])
+                if self.show_axis_custom == 'time':
+                    tex = str(int(self.x_boundary[i])%24).zfill(2) + ':00'
+                else: tex = self.scale_unit_style.format(self.x_boundary[i])
                 self.x_axis_numbers.append(self.canvas.create_text(pos, 
                                             anchor=N, fill=self.fg_color, 
                                             font=self.font_type, text=tex))
         elif order == 'y':
-            if self.show_axis_numbers == False:
+            if self.show_axis_custom == 'blank':
                 for item in self.y_axis_numbers: self.canvas.delete(item)
                 return
             self.remove_drawn_items(self.y_axis_numbers)
@@ -782,10 +789,11 @@ class Plot:
         """
         for name in args:
 
-            if name == 'digit': self.__scale_unit_iter = 3
+            if name == 'digit': self.__scale_unit_iter = 4
             elif name == 'e': self.__scale_unit_iter = 0
             elif name == '%': self.__scale_unit_iter = 1
-            elif name == '': self.__scale_unit_iter = 2
+            elif name == '\u231A': self.__scale_unit_iter = 2
+            elif name == '': self.__scale_unit_iter = 3
             else: return
 
             self.change_unit_scale()
