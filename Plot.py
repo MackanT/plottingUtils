@@ -128,6 +128,11 @@ class Plot:
         self.enable_plot_movement()
         self.__add_home_button()
         self.__add_scale_units_button()
+        self.__add_datapoint_selector()
+        self.datapoints_selection = False
+        self.marked_points = []
+        self.marked_text = []
+        self.marked_objects = []
 
     # Datasets
 
@@ -229,7 +234,7 @@ class Plot:
                                             + self.plot_dimensions[0]/2, 
                                             2*self.font_size)
         if self.has_y_label: 
-            p1 = self.canvas_boundary[0] - 8*self.font_size
+            p1 = 2*self.font_size
             p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2
             self.canvas.moveto(self.y_label, p1, p2)
         if self.has_x_label:
@@ -282,6 +287,8 @@ class Plot:
                                y = self.canvas_boundary[1] - 5)
         self.scale_unit_button.place(x = self.canvas_boundary[2] - 35,
                                      y = self.canvas_boundary[1] - 5)
+        self.datapoint_selector.place(x = self.canvas_boundary[2] - 65,
+                                     y = self.canvas_boundary[1] - 5)
 
         self.raise_items()        
 
@@ -302,11 +309,26 @@ class Plot:
 
     def mouse_pressed(self, event):
         """
-        Activates movement of the graphed data
+        Gets mouse click on plot area
         """
-        if self.plot_editor_selected_counter != 1:
-            self.plot_drag_mouse_clicked = True
-            self.plot_drag_mouse_pos = [event.x, event.y]
+        if self.datapoints_selection == True:
+
+            click_x = self.anti_scale_vector(event.x, 'x')
+            click_y = self.anti_scale_vector(event.y, 'y')
+
+            print(click_x, click_y)
+
+            closest_point = self.find_datapoint(click_x, click_y)
+
+            if np.linalg.norm(closest_point - [click_x, click_y]) > 2:
+                return
+            self.marked_points.append(closest_point)
+            self.draw_point_marker()
+
+        else:
+            if self.plot_editor_selected_counter != 1:
+                self.plot_drag_mouse_clicked = True
+                self.plot_drag_mouse_pos = [event.x, event.y]
 
     def mouse_dragged(self, event):
         """
@@ -377,6 +399,9 @@ class Plot:
 
             self.update_plots('all')
 
+
+    # Canvas Buttons
+
     def __add_home_button(self):
         """
         Creates auto focus button on graph
@@ -428,6 +453,53 @@ class Plot:
         self.set_axis_numbers(len(self.x_axis_numbers) - 1, 'x')
         self.set_axis_numbers(len(self.y_axis_numbers) - 1, 'y')
 
+    def __add_datapoint_selector(self):
+        """
+        Creates data selection button
+        """
+        self.datapoint_selector = Button(self.canvas, text='\u2316', width=2, command=self.select_datapoint, bg=self.highlight_colors[1])
+        self.datapoint_selector.place(x=self.canvas_boundary[2] - 65,y=self.canvas_boundary[1] - 5, anchor=SE)
+
+    def select_datapoint(self):
+        if self.datapoints_selection == False:
+            self.datapoint_selector.config(bg=self.highlight_colors[2])
+            self.datapoints_selection = True
+        else:
+            self.datapoint_selector.config(bg=self.highlight_colors[1])
+            self.datapoints_selection = False
+
+    def find_datapoint(self, x, y):
+        
+        shortest_distance = math.inf
+        for item in self.data_series:
+            if item.get_tag() != 'bFit': 
+                points = np.array(item.get_points())
+                delta_x = points[0,:] - x
+                delta_y = points[1,:] - y
+                length = np.zeros(np.size(delta_x))
+                for i in range(np.size(delta_x)):
+                    length[i] = np.sqrt(delta_x[i]**2 + delta_y[i]**2)
+                if np.min(length) < shortest_distance: 
+                    shortest_distance = np.min(length)
+                    best_index = np.argmin(length)
+                    best_point = points[:, best_index]
+        return best_point
+
+    def draw_point_marker(self):
+
+        position = self.marked_points[-1]
+        scaled_pos = [self.scale_vector(position[0], 'x'), 
+                      self.scale_vector(position[1], 'y')]
+        
+        p1 = scaled_pos[0] - 3
+        p2 = scaled_pos[1] - 3
+        p3 = scaled_pos[0] + 3
+        p4 = scaled_pos[1] + 3
+
+        self.marked_objects.append(self.plot.create_oval(p1, p2, p3, p4))
+        self.marked_text.append(self.plot.create_text(
+                    [scaled_pos[0] + 5, scaled_pos[1]], fill=self.fg_color, 
+                    font=self.font_type, anchor=W, text=position))
 
     # Ginput (Will be rewritten... will not clean up)
 
@@ -576,7 +648,7 @@ class Plot:
 
         if self.has_y_label == False:
             self.has_y_label = True
-            p1 = self.canvas_boundary[0] - 8*self.font_size
+            p1 = 2*self.font_size
             p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2
             self.y_label = self.canvas.create_text(p1, p2, font=self.font_type, 
                                     angle=90, text = texty, fill=self.fg_color)
@@ -984,6 +1056,24 @@ class Plot:
                 elif self.scale_type[1] == 'lin':
                     return -np.array(data)/self.y_scale_factor + self.y0
             
+    def anti_scale_vector(self, data, *args):
+
+        data = np.array(data)
+
+        for name in args:
+            if name == 'x':
+                if self.scale_type[0] == 'log': 
+                    return 10**((data * self.x_scale_factor 
+                                - self.x_log_scale[1]) / self.x_log_scale[0])
+                elif self.scale_type[0] == 'lin':
+                    return data*self.x_scale_factor
+            elif name == 'y':
+                if self.scale_type[1] == 'log':
+                    return 10**((data * self.y_scale_factor 
+                                - self.y_log_scale[1]) / self.y_log_scale[0])
+                elif self.scale_type[1] == 'lin':
+                    return (self.y0 - data) * self.y_scale_factor
+            
     def get_scale_factor(self):
         return [self.x_scale_factor, self.y_scale_factor]
 
@@ -1069,6 +1159,14 @@ class Plot:
                               self.scale_vector(position[1], 'y')]
                 self.plot.moveto(self.plotted_text[i], scaled_pos[0], 
                                  scaled_pos[1])
+            for i in range(len(self.marked_points)):
+                position = self.marked_points[i]
+                scaled_pos = [self.scale_vector(position[0], 'x'), 
+                              self.scale_vector(position[1], 'y')]
+                self.plot.moveto(self.marked_objects[i], scaled_pos[0] - 3, 
+                                scaled_pos[1] - 3)
+                self.plot.moveto(self.marked_text[i], scaled_pos[0] + 5, 
+                                scaled_pos[1] - 7)
                 
     def enable_animator(self, length):
         if self.has_animation == False:
