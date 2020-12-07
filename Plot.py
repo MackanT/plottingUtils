@@ -310,7 +310,7 @@ class Plot:
         Gets mouse click on plot area
         """
         if self.datapoints_selection == True:
-
+            
             click_x = self.anti_scale_vector(event.x, 'x')
             click_y = self.anti_scale_vector(event.y, 'y')
             closest_point = self.find_datapoint(click_x, click_y)
@@ -476,6 +476,7 @@ class Plot:
     def find_datapoint(self, x, y):
         
         shortest_distance = math.inf
+        print(x,y)
         for item in self.data_series:
             if item.get_tag() != 'bFit': 
                 points = np.array(item.get_points())
@@ -1072,7 +1073,7 @@ class Plot:
                     return 10**((data * self.x_scale_factor 
                                 - self.x_log_scale[1]) / self.x_log_scale[0])
                 elif self.scale_type[0] == 'lin':
-                    return data*self.x_scale_factor
+                    return (data-self.x0) * self.x_scale_factor
             elif name == 'y':
                 if self.scale_type[1] == 'log':
                     return 10**((data * self.y_scale_factor 
@@ -1096,7 +1097,7 @@ class Plot:
         # Plotting Parameters
         plot_range = range(np.size(x))
         plot_type = 'line'
-        grid_state = ''
+        grid_state = False
         for name in args:
             if name == 'scatter': plot_type = 'scatter'
             elif name == 'animate':
@@ -1107,12 +1108,13 @@ class Plot:
             elif name == 'log': 
                 self.scale_type[0] = 'log'
                 self.scale_type[1] = 'log'
-            elif name == 'show': grid_state = 'show'
+            elif name == 'show': grid_state = True
 
         dataset.add_points(x,y)
         self.auto_focus()
         dataset.add_scaled_points(self.scale_vector(x, 'x'), 
                                   self.scale_vector(y, 'y'))
+        if grid_state == True: self.set_grid_lines('xy', 10)
 
         if dataset.is_colored() == False:
             dataset.set_color(self.default_plot_colors[
