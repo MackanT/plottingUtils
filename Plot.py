@@ -168,12 +168,12 @@ class Plot:
         dataset = self.find_dataset(tag)
         if dataset != None: dataset.undraw_item(0)
 
-    def remove_drawn_items(self, thisList):
+    def remove_drawn_items(self, search_list):
         """
         Clears plotted content from the window itself
         """
-        for item in thisList: self.canvas.delete(int(item))            
-        thisList.clear()
+        for item in search_list: self.canvas.delete(int(item))            
+        search_list.clear()
 
     def find_dataset(self, tag):
         """
