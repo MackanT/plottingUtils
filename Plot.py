@@ -251,8 +251,13 @@ class Plot:
             p2 = self.canvas_boundary[3] + 3*self.font_size
             self.canvas.moveto(self.x_label, p1, p2)
         if self.has_colorbar:
-            self.set_colorbar(self.color_bar_colors[0], 
-                              self.color_bar_colors[1], 1)
+            self.add_colorbar(self.color_bar_colors[0], 
+                              self.color_bar_colors[1])
+            
+            if self.color_bar_text:
+                dH = self.plot_dimensions[1]/(len(self.color_bar_text)-1)
+                for i in range(len(self.color_bar_text)):
+                    self.canvas.moveto(self.color_bar_text[i], self.canvas_boundary[2] + 50, self.canvas_boundary[3] - i*dH - self.font_size)
             
         if self.has_legend:
             
@@ -476,7 +481,6 @@ class Plot:
     def find_datapoint(self, x, y):
         
         shortest_distance = math.inf
-        print(x,y)
         for item in self.data_series:
             if item.get_tag() != 'bFit': 
                 points = np.array(item.get_points())
@@ -1209,7 +1213,19 @@ class Plot:
             colors = [dataset.get_color() for n in data_range]
         return colors
 
-    def set_colorbar(self, color_start, color_end, values):   
+    def update_colors(self, tag):
+        dataset = self.find_dataset(tag)
+        if dataset == None: return
+        dataset.update_colors()
+
+    def set_colorbar(self, color_array, tag):
+        dataset = self.find_dataset(tag)
+        if dataset == None: 
+            self.add_dataset(tag)
+            dataset = self.find_dataset(tag)
+        dataset.set_colorbar(color_array)
+
+    def add_colorbar(self, color_start, color_end, *args):   
 
         self.has_colorbar = True
         self.color_bar.delete('all')
@@ -1224,13 +1240,25 @@ class Plot:
         g_ratio = float(g2-g1) / limit
         b_ratio = float(b2-b1) / limit
 
-        for i in range(limit):
-            nr = int(r1 + (r_ratio * i))
-            ng = int(g1 + (g_ratio * i))
-            nb = int(b1 + (b_ratio * i))
-            color = "#%4.4x%4.4x%4.4x" % (nr,ng,nb)
-            self.color_bar.create_line(0,i,25,i, fill=color)
+        i_vec = np.arange(0, limit)
+        nr = (i_vec*r_ratio + r1).astype(int)
+        ng = (i_vec*g_ratio + g1).astype(int)
+        nb = (i_vec*b_ratio + b1).astype(int)
 
+        self.colorbar_colors = np.empty(limit, dtype='S13')
+        for i in range(limit):
+            self.colorbar_colors[i] = "#%4.4x%4.4x%4.4x" % (nr[i],ng[i],nb[i])
+            self.color_bar.create_line(0,i,25,i, fill=self.colorbar_colors[i])
+
+        if args:
+            dH = self.plot_dimensions[1]/(len(args[0])-1)
+            for i in range(len(args[0])):
+
+                scaled_pos = [self.canvas_boundary[2] + 50, self.canvas_boundary[3] - i*dH - self.font_size]
+                self.color_bar_text.append(self.canvas.create_text(scaled_pos, anchor=NW,
+                      font=self.font_type, text=args[0][i], fill=self.fg_color))
+                
+    def get_colorbar(self): return np.flip(self.colorbar_colors)
 
     # Is this even in use???
     def clear_plot_data(self, tag):
