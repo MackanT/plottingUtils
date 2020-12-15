@@ -106,9 +106,7 @@ class Plot:
 
         self.color_bar = Canvas(self.root_window, width = 25, 
                            height = self.plot_dimensions[1], 
-                           bg=self.fg_color, highlightthickness=0)
-        self.color_bar.place(x = self.canvas_boundary[2] + 10, 
-                             y = self.canvas_boundary[1])
+                           bg=None, highlightthickness=0)
         self.color_bar_text = []
 
         self.plotted_items = [] # Not in use anymore??? Only currently best fit = broken
@@ -197,7 +195,7 @@ class Plot:
         """
         Updates Screen Dimensions to allow for screen resizing
         """
-        self.screen_padding_x = self.screen_height/12
+        self.screen_padding_x = 4*self.font_size
         self.offset_x = 2*self.screen_padding_x
         
         canvas_width = self.screen_width-2*self.screen_padding_x
@@ -236,12 +234,13 @@ class Plot:
         self.plot.place(x = self.offset_x, y = self.offset_y ,anchor = NW)
         self.auto_focus()
 
-        self.color_bar.config(height = self.plot_dimensions[1])
-        self.color_bar.place(x = self.canvas_boundary[2] + 10, 
+        if self.has_colorbar:
+            self.color_bar.config(height = self.plot_dimensions[1])
+            self.color_bar.place(x = self.canvas_boundary[2] + 10, 
                              y = self.canvas_boundary[1])
 
-        if self.has_title: self.canvas.moveto(self.title, self.screen_padding_x 
-                                            + self.plot_dimensions[0]/2, 
+        if self.has_title: self.canvas.moveto(self.title, 
+                                            self.plot_dimensions[0]/2, 
                                             2*self.font_size)
         if self.has_y_label: 
             p1 = 2*self.font_size
@@ -266,7 +265,7 @@ class Plot:
             for item in self.legend_content:
                 content = len(self.plot.itemcget(item, 'text'))
                 if content > text_len: text_len = content
-            text_len *= 3*self.font_size/4
+            text_len *= self.font_size
             
             pos = self.legend_pos
 
@@ -275,7 +274,7 @@ class Plot:
                                            - 2*len(self.legend_content)*self.font_size)
             if pos[1] == 'W': xOffset = 2*self.font_size
             elif pos[1] == 'E': xOffset = (self.plot_dimensions[0] 
-                                           - 1.5*text_len)
+                                           - text_len)
 
             for i in range(len(self.legend_content)):
                 self.plot.moveto(self.legend_content[i], xOffset, 
@@ -986,14 +985,14 @@ class Plot:
             for i in range(num_data):
                 tmpStr = names[i] + ' ' + str(values[i])
                 if len(tmpStr) > text_length: text_length = len(tmpStr) 
-            text_length *= 3*self.font_size/4
+            text_length *= self.font_size
             
             if pos[0] == 'N': yOffset = self.font_size
             elif pos[0] == 'S': yOffset = (self.plot_dimensions[1] 
                                            - 2*num_data*self.font_size)
             if pos[1] == 'W': xOffset = 2*self.font_size
             elif pos[1] == 'E': xOffset = (self.plot_dimensions[0] 
-                                           - 1.5*text_length)
+                                           - text_length)
 
             for i in range(num_data):
                 self.legend_content.append(self.plot.create_text(
@@ -1241,6 +1240,8 @@ class Plot:
 
     def add_colorbar(self, color_start, color_end, *args):   
 
+        self.color_bar.place(x = self.canvas_boundary[2] + 10, 
+                             y = self.canvas_boundary[1])
         self.has_colorbar = True
         self.color_bar.delete('all')
         self.color_bar_colors = [color_start, color_end]
@@ -1270,7 +1271,7 @@ class Plot:
 
                 scaled_pos = [self.canvas_boundary[2] + 50, self.canvas_boundary[3] - i*dH - self.font_size]
                 self.color_bar_text.append(self.canvas.create_text(scaled_pos, anchor=NW,
-                      font=self.font_type, text=args[0][i], fill=self.fg_color))
+                    font=self.font_type, text=args[0][i], fill=self.fg_color))
                 
     def get_colorbar(self): return np.flip(self.colorbar_colors)
 
@@ -1332,7 +1333,7 @@ class Plot:
 
     def update_editor(self):
         self.__update_editor_buttons('x_grid', 'y_grid', 'x_linlog','y_linlog', 
-                                     'txt_input', 'animation_speed', 'save_data')
+                                    'txt_input', 'animation_speed', 'save_data')
 
     def generate_plot_editor(self):
 
@@ -1566,8 +1567,8 @@ class Plot:
                 for item in self.data_series: 
                     data_tag = item.get_tag()
                     menu.add_command(label=data_tag, 
-                                     command=lambda value=data_tag: 
-                                     self.om_variable.set(value))
+                                    command=lambda value=data_tag: 
+                                    self.om_variable.set(value))
 
     def __update_save_tag(self, *args):
         
@@ -1690,7 +1691,7 @@ class Plot:
         else: 
             self.plot_editor_selected_counter = 0
             self.plot.itemconfig(self.plot_editor_selected_item, 
-                                   fill = self.fg_color)
+                                fill = self.fg_color)
             self.plot_editor_selected_item = None
             self.__update_editor_buttons('sel_item', 'txt_input')
 
@@ -1706,11 +1707,11 @@ class Plot:
                 if x > pos[0] and x < pos[2] and y > pos[1] and y < pos[3]:
                     self.plot_editor_selected_item = item
                     self.plot.itemconfig(self.plot_editor_selected_item, 
-                                           fill=self.highlight_colors[0])    
+                                        fill=self.highlight_colors[0])    
                     self.__select_item()
                     return
 
     def __select_item_change(self, event):
         if self.plot_editor_selected_item != None:
             self.plot.itemconfig(self.plot_editor_selected_item, 
-                                   text=self.select_item_text_input.get())
+                                    text=self.select_item_text_input.get())
