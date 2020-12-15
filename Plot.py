@@ -48,9 +48,9 @@ class Plot:
 
         self.canvas = Canvas(self.root_window, width = self.screen_width, 
                              height = self.screen_height, bg=self.bg_color, 
-                             bd=0, highlightthickness=0)
+                             bd = 0, highlightthickness = 0)
         self.set_canvas_dimensions()
-        self.canvas.place(x=0, y= 0)
+        self.canvas.place(x = 0, y = 0)
 
         self.plot = Canvas(self.root_window, width = self.plot_dimensions[0], 
                            height = self.plot_dimensions[1], bg='#ffffff', bd=0)
@@ -86,6 +86,7 @@ class Plot:
         self.x_scale_factor = 0
         self.y_scale_factor = 0
         self.scale_type= ['lin', 'lin']
+        self.axis_grid_lines = [10, 10]
         self.x_boundary = []
         self.y_boundary = []
         self.scale_unit_style = '{:.2f}'
@@ -689,7 +690,6 @@ class Plot:
         Also auto sets axis numbers and grid if they are enabled
         """
 
-        num_ticks = 10
         update_plot = True
         auto_focus = False
 
@@ -714,9 +714,10 @@ class Plot:
             elif name == 'lin': self.scale_type[0] = 'lin'
             elif name == 'show': self.has_x_grid = True
             elif name == 'hidden': self.has_x_grid = False
-            elif isinstance(name, int): num_ticks = name
+            elif isinstance(name, int): self.axis_grid_lines[0] = name
             elif name == 'drag': update_plot = False
-
+        
+        num_ticks = self.axis_grid_lines[0]
         if num_ticks == 0: num_ticks = 1 
 
         if auto_focus == True: x_start, x_end = self.auto_focus('axis_x')
@@ -756,7 +757,6 @@ class Plot:
         Also auto sets axis numbers and grid if they are enabled
         """
 
-        num_ticks = 10
         update_plot = True
         auto_focus = False
 
@@ -781,9 +781,10 @@ class Plot:
             elif name == 'lin': self.scale_type[1] = 'lin'
             elif name == 'show': self.has_y_grid = True
             elif name == 'hidden': self.has_y_grid = False
-            elif isinstance(name, int): num_ticks = name
+            elif isinstance(name, int): self.axis_grid_lines[1] = name
             elif name == 'drag': update_plot = False
 
+        num_ticks = self.axis_grid_lines[1]
         if num_ticks == 0: num_ticks = 1 
 
         if auto_focus == True: y_start, y_end = self.auto_focus('axis_y')
@@ -1580,15 +1581,15 @@ class Plot:
         self.auto_focus()
         self.update_plots('all')
         self.__update_editor_buttons('x_grid', 'x_linlog', 
-                                     'y_grid', 'y_linlog')
+                                    'y_grid', 'y_linlog')
         
     def __enable_grid(self, order):
         if order =='x':
             if self.has_x_grid == True: self.remove_grid_lines(order)
-            else: self.set_grid_lines(order, 10)
+            else: self.set_grid_lines(order, self.axis_grid_lines[0])
         if order =='y':
             if self.has_y_grid == True: self.remove_grid_lines(order)
-            else: self.set_grid_lines(order, 10)
+            else: self.set_grid_lines(order, self.axis_grid_lines[1])
         self.raise_items()
         self.__update_editor_buttons('x_grid', 'y_grid')
 
