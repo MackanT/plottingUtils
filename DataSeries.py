@@ -14,6 +14,7 @@ class DataSeries:
         self.plotted_items = []
         
         self.has_colorbar = False
+        self.has_markerbar = False
         self.has_drawn = False
         self.has_animation = False
         self.has_color = False
@@ -38,14 +39,15 @@ class DataSeries:
     def draw(self, index):
         
         self.has_drawn = True
-        dot_size = self.scatter_width/2
         if not index: index = [index]
         if self.has_animation == True:    
             self.plotted_items = np.empty(1)
             p1 = self.scaled_points[0,index[0]]
             p2 = self.scaled_points[1,index[0]]
+            use_color = self.colorbar[index] if self.has_colorbar else self.color
+            dot_size = self.markerbar[index]/2 if self.has_markerbar else self.scatter_width/2
             if self.plot_type == 'scatter': 
-                self.plotted_items[0] = self.__draw_dot(p1, p2, dot_size)
+                self.plotted_items[0] = self.__draw_dot(p1, p2, dot_size, use_color)
             elif self.plot_type == 'line': 
                 p3 = self.scaled_points[0,index[0]+1]
                 p4 = self.scaled_points[1,index[0]+1]
@@ -56,15 +58,17 @@ class DataSeries:
             for i in index:
                 p1 = self.scaled_points[0,i]
                 p2 = self.scaled_points[1,i]
+                use_color = self.colorbar[i] if self.has_colorbar else self.color
+                dot_size = self.markerbar[i]/2 if self.has_markerbar else self.scatter_width/2
                 if self.plot_type == 'scatter':
-                    self.plotted_items[drawPos] = self.__draw_dot(p1, p2, dot_size)
+                    self.plotted_items[drawPos] = self.__draw_dot(p1, p2, dot_size, use_color)
                 elif self.plot_type == 'line' and i < self.data_length-1:
                     self.plotted_items[drawPos] = self.__draw_line(p1,p2,self.scaled_points[0,i+1],self.scaled_points[1,i+1])
                 drawPos += 1
 
-    def __draw_dot(self, p1, p2, dot_size):
+    def __draw_dot(self, p1, p2, dot_size, use_color):
         return self.canvas.create_oval(p1-dot_size,p2-dot_size,p1+dot_size,
-                                       p2+dot_size, width=0, fill=self.color)
+                                       p2+dot_size, width=0, fill=use_color)
 
     def __draw_line(self, p1, p2, p3, p4):
         return self.canvas.create_line(p1,p2,p3,p4, width=self.line_width, 
@@ -92,6 +96,20 @@ class DataSeries:
                     p4 = self.scaled_points[1,index[i]+1]
                     self.canvas.coords(int(self.plotted_items[i]), p1, p2, p3, p4)
 
+    def update_colors(self):
+        for i in range(len(self.plotted_items)):
+            use_color = self.colorbar[i] if self.has_colorbar else self.color
+            self.canvas.itemconfig(int(self.plotted_items[i]), fill=use_color)
+
+    def update_markers(self):
+        for i in range(len(self.plotted_items)):
+            
+            dot_size = self.markerbar[i]/2 if self.has_markerbar else self.scatter_width/2
+
+            p1 = self.scaled_points[0,i]
+            p2 = self.scaled_points[1,i]
+            self.canvas.coords(int(self.plotted_items[i]), p1 - dot_size, p2 - dot_size, p1 + dot_size, p2 + dot_size)
+
     def update_item(self, x, y, *args):
         self.scaled_points[0,:] = x
         self.scaled_points[1,:] = y
@@ -110,8 +128,12 @@ class DataSeries:
         self.color = color
 
     def set_colorbar(self, color):
-        self.colorbar = np.array(len(color))
-        for i in range(len(color)): self.colorbar[i] = color[i]
+        self.has_colorbar = True
+        self.colorbar = np.array(color)
+
+    def set_markerbar(self, sizes):
+        self.has_markerbar = True
+        self.markerbar = np.array(sizes)
 
     def get_line_width(self):
         return self.line_width
@@ -150,7 +172,7 @@ class DataSeries:
         return self.data_points[:,index]
 
     def get_points(self):
-        return self.data_points[:,:]
+        return self.data_points
 
     def clear_data(self):
         self.undraw_item(0)
