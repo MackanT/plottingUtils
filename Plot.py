@@ -1205,6 +1205,19 @@ class Plot:
             self.animationScrollbar.set(self.animationScrollbar.get() 
                                         - self.animation_speed)
 
+    # Markers
+
+    def set_markerbar(self, size_array, tag):
+        dataset = self.find_dataset(tag)
+        if dataset == None: 
+            self.add_dataset(tag)
+            dataset = self.find_dataset(tag)
+        dataset.set_markerbar(size_array)
+
+    def update_markers(self, tag):
+        dataset = self.find_dataset(tag)
+        if dataset == None: return
+        dataset.update_markers()
     # Colors
 
     def get_color(self, dataset):
