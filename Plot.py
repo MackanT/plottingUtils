@@ -1286,31 +1286,22 @@ class Plot:
             cur_time = str(datetime.now().time())[0:8]
             cur_time = cur_time.replace(':', '_')
             
-            data_name = self.file_save_location + '\\' + str(i) + '_' + cur_time + '.txt'
-            data_file = open(data_name, 'w+')
-            
+            data_name = self.file_save_location + '\\' + str(i) + '_' + cur_time
             data = dataset.get_points()
-            for i in range(np.size(data, 1)):
-                string = str(data[:,i])
-                data_file.write(string[1:-1] + '\n')
-
-            data_file.close()
+            np.save(data_name, data, allow_pickle=True, fix_imports=True)
     
-    def load_data(self, tag):
+    def load_data(self):
 
-        data_name = self.file_save_location + '\\' + str(tag) + '.txt'
+        tag = self.load_text_input.get()
+
+        data_name = self.file_save_location + '\\' + str(tag) + '.npy'
         if os.path.exists(data_name):
 
-            x = []
-            y = []
-            with open(data_name) as f: lines = f.read().splitlines()
-            for i in range(len(lines)):
-                ind = lines[i].find(',')
+            data_type = 'scatter' if 'ext' in data_name else 'line'
+            
+            data = np.load(data_name)    
+            self.graph(data[0,:], data[1,:], str(tag), data_type)
 
-                x.append(lines[i][0:ind])
-                y.append(lines[i][ind+1:])
-
-            return [x, y]
 
     # Plot Editor
 
@@ -1472,7 +1463,13 @@ class Plot:
         self.save_data_name_color = self.editor_canvas.create_oval(450, 36, 458, 44, state='hidden')
         self.save_data_name_selection = self.editor_canvas.create_text(465, 40, anchor=W, text='')
 
+        self.load_text_input = Entry(self.editor_canvas, fg='gray')
+        self.load_text_input.place(x=450,y=62, anchor=NW)
 
+        self.load_data_button = Button(self.editor_canvas, font='bold', text='Load', width=5, 
+                                command=lambda:self.load_data(), 
+                                bg=self.bg_color)
+        self.load_data_button.place(x=640,y=62, width=40, anchor=NW)
 
         # Best Fit, not in use
         # self.bestFitButton = Button(self.editor_canvas, text='Best Fit', command=self.__bestFit)
