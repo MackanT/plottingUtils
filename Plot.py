@@ -1202,7 +1202,12 @@ class Plot:
         dataset = self.find_dataset(tag)
         if dataset == None: return
         dataset.update_markers()
+    
     # Colors
+
+    def next_plot_color(self): 
+        self.default_plot_color_counter +=1
+        self.default_plot_color_counter %= len(self.default_plot_colors)
 
     def get_color(self, dataset):
         colors = dataset.get_color()
@@ -1437,7 +1442,7 @@ class Plot:
         self.select_item_text_input.bind("<Return>", self.__select_item_change)
 
         self.select_item_button = Button(self.editor_canvas, text='Select Item', 
-                        bg=self.bg_color, width = 10, command=self.__select_item)
+                        bg=self.bg_color, width = 8, command=self.__select_item)
         self.select_item_button.place(x= 360, y = 92)
 
         # Animation
@@ -1485,24 +1490,32 @@ class Plot:
                                 bg=self.bg_color)
         self.load_data_button.place(x=640,y=74, width=40, anchor=NW)
 
-        self.load_data_name_selection = self.editor_canvas.create_text(465, 118, anchor=W, text='')
+        self.load_data_name_selection = self.editor_canvas.create_text(465, 128, anchor=W, text='')
 
         # Load Selections
 
-        scatter_file = self.file_image_location + '\\scatter_2.png'
+        image_file = self.file_image_location + '\\scatter.png'
         self.load_data_type = 'scatter'
-        self.load_data_type_image = ImageTk.PhotoImage(Image.open(scatter_file)) 
-        self.load_data_type_button = Button(self.editor_canvas, width = 40, 
-                                height = 30, command=self.__change_plot_type, 
+        self.load_data_type_image = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.load_data_type_button = Button(self.editor_canvas, width = 30, 
+                                height = 35, command=self.__change_plot_type, 
                                 bg = self.bg_color, image = self.load_data_type_image)
         self.load_data_type_button.place(x=450,y=74, anchor=NW)
 
-        index = self.default_plot_color_counter%len(self.default_plot_colors)
+        index = self.default_plot_color_counter
         self.load_data_color = self.default_plot_colors[index]
-        self.load_data_color_button = Button(self.editor_canvas, width = 4, 
-                                height = 1, command=self.__change_plot_color, 
+        self.load_data_color_button = Button(self.editor_canvas, width = 3, 
+                                height = 2, command=self.__change_plot_color, 
                                 bg = self.load_data_color)
-        self.load_data_color_button.place(x=510,y=74, anchor=NW)
+        self.load_data_color_button.place(x=490,y=74, anchor=NW)
+
+        image_file = self.file_image_location + '\\legend.png'
+        self.load_data_legend = True
+        self.load_data_legend_image = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.load_data_legend_button = Button(self.editor_canvas, width = 30, 
+                                height = 35, command=self.__change_plot_legend, 
+                                bg = self.highlight_colors[1], image=self.load_data_legend_image)
+        self.load_data_legend_button.place(x=525, y=74, anchor=NW)
         
 
         # Best Fit, not in use
