@@ -39,7 +39,7 @@ class Plot:
         self.has_colorbar = False
 
         # Graphical Window
-        self.root_window = Tk()
+        self.root_window = Toplevel()
         self.root_window.title(window_name)
         self.root_window.geometry('%dx%d'%(self.screen_width, self.screen_height))
         self.root_window.configure(bg=self.bg_color)
@@ -114,7 +114,7 @@ class Plot:
         # Editing Tools
         self.add_dataset('bFit')
         self.root_window.bind('<e>', self.__open_plot_editor)
-        self.editor_window = Tk()
+        self.editor_window = Toplevel()
         self.editor_window.title('Plot Editor')
         self.editor_window.geometry('750x230')
         self.editor_window.protocol("WM_DELETE_WINDOW", self.__close_editor)
