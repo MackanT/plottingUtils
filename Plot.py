@@ -236,18 +236,17 @@ class Plot:
                            height=self.screen_height)
 
         self.plot.config(width = self.plot_dimensions[0] * width_delta, 
-                         height=self.plot_dimensions[1] * height_delta)
-        self.plot.place(x = self.offset_x, y = self.offset_y ,anchor = NW)
+                         height = self.plot_dimensions[1] * height_delta)
+        self.plot.place(x = self.offset_x, y = self.offset_y)
         self.auto_focus()
 
         if self.has_colorbar:
             self.color_bar.config(height = self.plot_dimensions[1])
             self.color_bar.place(x = self.canvas_boundary[2] + 10, 
-                             y = self.canvas_boundary[1])
-
-        if self.has_title: self.canvas.moveto(self.title, 
-                                            self.plot_dimensions[0]/2, 
-                                            2*self.font_size)
+                                 y = self.canvas_boundary[1])
+        if self.has_title: 
+            self.canvas.moveto(self.title, self.plot_dimensions[0]/2, 
+                               2*self.font_size)
         if self.has_y_label: 
             p1 = 2*self.font_size
             p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2
@@ -258,45 +257,20 @@ class Plot:
             self.canvas.moveto(self.x_label, p1, p2)
         if self.has_colorbar:
             self.add_colorbar(self.color_bar_colors[0], 
-                              self.color_bar_colors[1])
-            
+                              self.color_bar_colors[1])     
             if self.color_bar_text:
                 dH = self.plot_dimensions[1]/(len(self.color_bar_text)-1)
                 for i in range(len(self.color_bar_text)):
-                    self.canvas.moveto(self.color_bar_text[i], self.canvas_boundary[2] + 50, self.canvas_boundary[3] - i*dH - self.font_size)
-            
-        if self.has_legend:
-            
-            text_len = 0
-            for item in self.legend_content:
-                content = len(self.plot.itemcget(item, 'text'))
-                if content > text_len: text_len = content
-            text_len *= self.font_size
-            
-            pos = self.legend_pos
-
-            if pos[0] == 'N': yOffset = self.font_size
-            elif pos[0] == 'S': yOffset = (self.plot_dimensions[1] 
-                                           - 2*len(self.legend_content)*self.font_size)
-            if pos[1] == 'W': xOffset = 2*self.font_size
-            elif pos[1] == 'E': xOffset = (self.plot_dimensions[0] 
-                                           - text_len)
-
-            for i in range(len(self.legend_content)):
-                self.plot.moveto(self.legend_content[i], xOffset, 
-                                 yOffset + 2*i*self.font_size)
-            
-            xOffset -= 3/2*self.font_size
-
-            for i in range(len(self.legend_markers)):
-                self.plot.moveto(self.legend_markers[i], xOffset, 
-                                 yOffset + 2*i*self.font_size)
+                    self.canvas.moveto(self.color_bar_text[i], 
+                                       self.canvas_boundary[2] + 50, 
+                                       self.canvas_boundary[3] - i*dH 
+                                       - self.font_size)       
         
         self.home_button.place(x = self.canvas_boundary[2] - 5, 
                                y = self.canvas_boundary[1] - 5)
-        self.scale_unit_button.place(x = self.canvas_boundary[2] - 35,
+        self.scale_unit_button.place(x = self.canvas_boundary[2] - 45,
                                      y = self.canvas_boundary[1] - 5)
-        self.datapoint_selector.place(x = self.canvas_boundary[2] - 65,
+        self.datapoint_selector.place(x = self.canvas_boundary[2] - 85,
                                      y = self.canvas_boundary[1] - 5)
 
         self.raise_items()        
@@ -974,17 +948,27 @@ class Plot:
     def set_legend(self, pos):
 
         self.has_legend = True
+        
+        names, colors = [], []
+        for dataset in self.data_series:
+            if dataset.get_legend() != None:
+                names.append(dataset.get_legend())
+                colors.append(dataset.get_color())
 
         if pos == 'NE': self.legend_pos = 'NE'
         elif pos == 'NW': self.legend_pos = 'NW'
         elif pos == 'SE': self.legend_pos = 'SE'
         elif pos == 'SW': self.legend_pos = 'SW'
 
+        text_length = len(max(names, key=len))
         if pos[0]   == 'N': self.legend_y_offset = self.font_size
-        elif pos[0] == 'S': self.legend_y_offset = (self.plot_dimensions[1] 
-                                        - 2*self.font_size)
+        if pos[0]   == 'S': self.legend_y_offset = (self.plot_dimensions[1] 
+                                                    - len(names)*2*self.font_size)
         if pos[1]   == 'W': self.legend_x_offset = 2*self.font_size
-        elif pos[1] == 'E': self.legend_x_offset = (self.plot_dimensions[0])
+        elif pos[1] == 'E': self.legend_x_offset = (self.plot_dimensions[0] 
+                                                    - text_length*self.font_size)
+
+        for i in range(len(names)): self.add_to_legend(names[i], colors[i])
 
     def add_to_legend(self, name, color):
 
@@ -1114,8 +1098,8 @@ class Plot:
         dataset.set_plot_type(plot_type)
         dataset.draw(plot_range)
 
-        if dataset.get_legend() != None: 
-            self.add_to_legend(dataset.get_legend(), dataset.get_color())
+        # if dataset.get_legend() != None: 
+        #     self.add_to_legend(dataset.get_legend(), dataset.get_color())
 
     ### nPart of ginput!  
     def gen_x_path(self, points, x_start, x_end):
@@ -1264,7 +1248,7 @@ class Plot:
                 scaled_pos = [self.canvas_boundary[2] + 50, self.canvas_boundary[3] - i*dH - self.font_size]
                 self.color_bar_text.append(self.canvas.create_text(scaled_pos, anchor=NW,
                     font=self.font_type, text=args[0][i], fill=self.fg_color))
-                
+
     def get_colorbar(self): 
         return np.flip(self.colorbar_colors)
 
