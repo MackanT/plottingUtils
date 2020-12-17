@@ -985,8 +985,6 @@ class Plot:
     def add_to_legend(self, name, color):
 
         i = len(self.legend_content)
-        print(color)
-
         self.legend_content.append(self.plot.create_text(self.legend_x_offset,
                             self.legend_y_offset + 2*i*self.font_size, anchor=NW, 
                             fill=self.fg_color, font=self.font_type, 
@@ -1263,7 +1261,8 @@ class Plot:
                 self.color_bar_text.append(self.canvas.create_text(scaled_pos, anchor=NW,
                     font=self.font_type, text=args[0][i], fill=self.fg_color))
                 
-    def get_colorbar(self): return np.flip(self.colorbar_colors)
+    def get_colorbar(self): 
+        return np.flip(self.colorbar_colors)
 
     # Is this even in use???
     def clear_plot_data(self, tag):
@@ -1466,9 +1465,11 @@ class Plot:
         self.save_data_tag_selector.config(bg=self.bg_color, width=1, font='bold')                                            
         self.save_data_tag_selector.place(x=580, y=22)
 
-        self.save_data_button = Button(self.editor_canvas, font='bold', text='\U0001f4be', width=5, 
+        image_file = self.file_image_location + '\\save.png'
+        self.button_image_save_data = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.save_data_button = Button(self.editor_canvas, width=30, height=35, 
                                 command=lambda: self.save_data(self.om_save_variable.get()), 
-                                bg=self.bg_color)
+                                bg=self.bg_color, image=self.button_image_save_data)
         self.save_data_button.place(x=640,y=22, width=40, anchor=NW)
 
         self.save_data_name_color = self.editor_canvas.create_oval(450, 36, 458, 44, state='hidden')
@@ -1485,9 +1486,11 @@ class Plot:
         self.load_data_tag_selector.config(bg=self.bg_color, width=1, font='bold')                                            
         self.load_data_tag_selector.place(x=580, y=74)
 
-        self.load_data_button = Button(self.editor_canvas, font='bold', text='\U0001f4c2', width=5, 
+        image_file = self.file_image_location + '\\load.png'
+        self.button_image_load_data = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.load_data_button = Button(self.editor_canvas, width=30, height=35, 
                                 command=lambda:self.load_data(), 
-                                bg=self.bg_color)
+                                bg=self.bg_color, image=self.button_image_load_data)
         self.load_data_button.place(x=640,y=74, width=40, anchor=NW)
 
         self.load_data_name_selection = self.editor_canvas.create_text(465, 128, anchor=W, text='')
@@ -1496,10 +1499,10 @@ class Plot:
 
         image_file = self.file_image_location + '\\scatter.png'
         self.load_data_type = 'scatter'
-        self.load_data_type_image = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.button_image_data_type = ImageTk.PhotoImage(Image.open(image_file)) 
         self.load_data_type_button = Button(self.editor_canvas, width = 30, 
                                 height = 35, command=self.__change_plot_type, 
-                                bg = self.bg_color, image = self.load_data_type_image)
+                                bg = self.bg_color, image = self.button_image_data_type)
         self.load_data_type_button.place(x=450,y=74, anchor=NW)
 
         index = self.default_plot_color_counter
@@ -1511,10 +1514,10 @@ class Plot:
 
         image_file = self.file_image_location + '\\legend.png'
         self.load_data_legend = True
-        self.load_data_legend_image = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.button_image_legend = ImageTk.PhotoImage(Image.open(image_file)) 
         self.load_data_legend_button = Button(self.editor_canvas, width = 30, 
                                 height = 35, command=self.__change_plot_legend, 
-                                bg = self.highlight_colors[1], image=self.load_data_legend_image)
+                                bg = self.highlight_colors[1], image=self.button_image_legend)
         self.load_data_legend_button.place(x=525, y=74, anchor=NW)
         
 
@@ -1630,8 +1633,8 @@ class Plot:
 
         self.load_data_type = data_type
         scatter_file = self.file_image_location + '\\' + data_type + '.png'
-        self.load_data_type_image = ImageTk.PhotoImage(Image.open(scatter_file)) 
-        self.load_data_type_button.config(image = self.load_data_type_image)
+        self.button_image_data_type = ImageTk.PhotoImage(Image.open(scatter_file)) 
+        self.load_data_type_button.config(image = self.button_image_data_type)
 
     def __change_plot_color(self):
         
