@@ -1333,7 +1333,8 @@ class Plot:
 
     def update_editor(self):
         self.__update_editor_buttons('x_grid', 'y_grid', 'x_linlog','y_linlog', 
-                                    'txt_input', 'animation_speed', 'save_data')
+                                    'txt_input', 'animation_speed', 'save_data', 
+                                    'load_data')
 
     def generate_plot_editor(self):
 
@@ -1459,32 +1460,42 @@ class Plot:
         self.__add_focus_listeners(self.animation_speed_input)
         self.animation_speed_input.bind("<Return>", self.__set_animation_speed)
 
-        # Save/Load Data
+        # Save Data
         self.editor_canvas.create_text(450, 10, anchor=W, text='Save Data')
         self.editor_canvas.create_line(450,16,680,16)
 
-        self.om_variable = StringVar()
-        self.om_variable.trace('w', self.__update_save_tag)
+        self.om_save_variable = StringVar()
+        self.om_save_variable.trace('w', self.__update_save_tag)
         self.save_data_tag_selector = OptionMenu(self.editor_canvas, 
-                                            self.om_variable, '')
+                                            self.om_save_variable, '')
         self.save_data_tag_selector.config(bg=self.bg_color, width=1, font='bold')                                            
         self.save_data_tag_selector.place(x=580, y=22)
 
         self.save_data_button = Button(self.editor_canvas, font='bold', text='\U0001f4be', width=5, 
-                                command=lambda: self.save_data(self.om_variable.get()), 
+                                command=lambda: self.save_data(self.om_save_variable.get()), 
                                 bg=self.bg_color)
         self.save_data_button.place(x=640,y=22, width=40, anchor=NW)
 
         self.save_data_name_color = self.editor_canvas.create_oval(450, 36, 458, 44, state='hidden')
         self.save_data_name_selection = self.editor_canvas.create_text(465, 40, anchor=W, text='')
 
-        self.load_text_input = Entry(self.editor_canvas, fg='gray')
-        self.load_text_input.place(x=450,y=62, anchor=NW)
+        # Load Data
+        self.editor_canvas.create_text(450, 62, anchor=W, text='Load Data')
+        self.editor_canvas.create_line(450,68,680,68)
 
-        self.load_data_button = Button(self.editor_canvas, font='bold', text='Load', width=5, 
+        self.om_load_variable = StringVar()
+        self.om_load_variable.trace('w', self.__update_load_tag)
+        self.load_data_tag_selector = OptionMenu(self.editor_canvas, 
+                                            self.om_load_variable, '')
+        self.load_data_tag_selector.config(bg=self.bg_color, width=1, font='bold')                                            
+        self.load_data_tag_selector.place(x=580, y=74)
+
+        self.load_data_button = Button(self.editor_canvas, font='bold', text='\U0001f4c2', width=5, 
                                 command=lambda:self.load_data(), 
                                 bg=self.bg_color)
-        self.load_data_button.place(x=640,y=62, width=40, anchor=NW)
+        self.load_data_button.place(x=640,y=74, width=40, anchor=NW)
+
+        self.load_data_name_selection = self.editor_canvas.create_text(465, 118, anchor=W, text='')
 
         # Best Fit, not in use
         # self.bestFitButton = Button(self.editor_canvas, text='Best Fit', command=self.__bestFit)
@@ -1568,16 +1579,29 @@ class Plot:
                     data_tag = item.get_tag()
                     menu.add_command(label=data_tag, 
                                     command=lambda value=data_tag: 
-                                    self.om_variable.set(value))
+                                    self.om_save_variable.set(value))
+            elif button == 'load_data':
+                menu = self.load_data_tag_selector['menu']
+                menu.delete(0, 'end')
+                with os.scandir(self.file_save_location) as dirs:
+                    for entry in dirs:
+                        menu.add_command(label=entry.name, 
+                                        command=lambda value=entry.name: 
+                                        self.om_load_variable.set(value))
 
     def __update_save_tag(self, *args):
         
-        tag = self.om_variable.get()
+        tag = self.om_save_variable.get()
         tag_color = self.find_dataset(tag).get_color()
 
         self.editor_canvas.itemconfig(self.save_data_name_selection, text=tag)
         self.editor_canvas.itemconfig(self.save_data_name_color, fill=tag_color, state='normal')
-        self.om_variable.set(tag)
+        self.om_save_variable.set(tag)
+
+    def __update_load_tag(self, *args):
+        
+        tag = self.om_load_variable.get()
+        self.editor_canvas.itemconfig(self.load_data_name_selection, text=tag)
 
     def __switch_linlog(self, order):
         
