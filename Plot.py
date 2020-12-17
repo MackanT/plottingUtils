@@ -967,63 +967,41 @@ class Plot:
 
     # Legend
 
-    def set_legend(self, names, values, *args):
-        
-        num_data = len(values)
+    def set_legend(self, pos):
 
-        if self.has_legend == False:
-            self.has_legend = True
+        self.has_legend = True
 
-            if not args: pos = self.legend_pos
-            elif args == 'NE': self.legend_pos = 'NE'
-            elif args == 'NW': self.legend_pos = 'NW'
-            elif args == 'SE': self.legend_pos = 'SE'
-            elif args == 'SW': self.legend_pos = 'SW'
-            pos = self.legend_pos
+        if pos == 'NE': self.legend_pos = 'NE'
+        elif pos == 'NW': self.legend_pos = 'NW'
+        elif pos == 'SE': self.legend_pos = 'SE'
+        elif pos == 'SW': self.legend_pos = 'SW'
 
-            cond1 = not isinstance(names, list)
-            cond2 = len(values) > 1
-            if cond1 and cond2: names = [names for i in range(num_data)]
+        if pos[0]   == 'N': self.legend_y_offset = self.font_size
+        elif pos[0] == 'S': self.legend_y_offset = (self.plot_dimensions[1] 
+                                        - 2*self.font_size)
+        if pos[1]   == 'W': self.legend_x_offset = 2*self.font_size
+        elif pos[1] == 'E': self.legend_x_offset = (self.plot_dimensions[0])
 
-            visibility = 'normal' if self.has_graph else 'hidden'
-            text_length = 0
+    def add_to_legend(self, name, color):
 
-            for i in range(num_data):
-                tmpStr = names[i] + ' ' + str(values[i])
-                if len(tmpStr) > text_length: text_length = len(tmpStr) 
-            text_length *= self.font_size
-            
-            if pos[0] == 'N': yOffset = self.font_size
-            elif pos[0] == 'S': yOffset = (self.plot_dimensions[1] 
-                                           - 2*num_data*self.font_size)
-            if pos[1] == 'W': xOffset = 2*self.font_size
-            elif pos[1] == 'E': xOffset = (self.plot_dimensions[0] 
-                                           - text_length)
+        i = len(self.legend_content)
+        print(color)
 
-            for i in range(num_data):
-                self.legend_content.append(self.plot.create_text(
-                            xOffset, yOffset + 2*i*self.font_size, anchor=NW, 
+        self.legend_content.append(self.plot.create_text(self.legend_x_offset,
+                            self.legend_y_offset + 2*i*self.font_size, anchor=NW, 
                             fill=self.fg_color, font=self.font_type, 
-                            text='%s  %s'%(names[i], values[i]), state=visibility))
+                            text=name))
                 
-                p1 = xOffset-3/2*self.font_size
-                p2 = yOffset + (2*i+1/4)*self.font_size
-                p3 = xOffset-1/2*self.font_size
-                p4 = yOffset + (2*i+5/4)*self.font_size
-                self.legend_markers.append(self.plot.create_oval(
-                            p1, p2, p3, p4, fill=self.default_plot_colors[i], 
-                            state=visibility))
+        p1 = self.legend_x_offset-3/2*self.font_size
+        p2 = self.legend_y_offset + (2*i+1/4)*self.font_size
+        p3 = self.legend_x_offset-1/2*self.font_size
+        p4 = self.legend_y_offset + (2*i+5/4)*self.font_size
+        self.legend_markers.append(self.plot.create_oval(
+                            p1, p2, p3, p4, fill=color))
 
-        else:
-            for item in self.legend_content:
-                self.plot.itemconfig(item, state='normal')
-            for item in self.legend_markers:
-                self.plot.itemconfig(item, state='normal')
-
-    def update_legend(self, names, values):
+    def update_legend(self, names):
         for i in range(len(names)):
-            self.plot.itemconfig(self.legend_content[i], 
-                                 text='%s:  %s'%(names[i], values[i]))
+            self.plot.itemconfig(self.legend_content[i], text=names[i])
 
     # Data validation for plotted objects
 
@@ -1119,6 +1097,7 @@ class Plot:
                 self.scale_type[0] = 'log'
                 self.scale_type[1] = 'log'
             elif name == 'show': grid_state = True
+            elif 'legend=' in name: dataset.set_legend(name)
 
         dataset.add_points(x,y)
         self.auto_focus()
@@ -1127,14 +1106,14 @@ class Plot:
         if grid_state == True: self.set_grid_lines('xy', 10)
 
         if dataset.is_colored() == False:
-            dataset.set_color(self.default_plot_colors[
-                self.default_plot_color_counter%len(self.default_plot_colors)])
-            self.default_plot_color_counter += 1
+            dataset.set_color(self.default_plot_colors[self.default_plot_color_counter])
+            self.next_plot_color()
         
         dataset.set_plot_type(plot_type)
         dataset.draw(plot_range)
 
-        if self.has_legend == True: self.set_legend('', '')
+        if dataset.get_legend() != None: 
+            self.add_to_legend(dataset.get_legend(), dataset.get_color())
 
     ### nPart of ginput!  
     def gen_x_path(self, points, x_start, x_end):
@@ -1326,6 +1305,7 @@ class Plot:
             data = np.load(data_name)    
             self.graph(data[0,:], data[1,:], str(tag), self.load_data_type)
 
+            if self.load_data_legend: self.add_to_legend(tag, self.load_data_color)
 
 
     # Plot Editor
@@ -1636,16 +1616,22 @@ class Plot:
         data_type = 'scatter' if self.load_data_type == 'line' else 'line'
 
         self.load_data_type = data_type
-        scatter_file = self.file_image_location + '\\' + data_type + '_2.png'
+        scatter_file = self.file_image_location + '\\' + data_type + '.png'
         self.load_data_type_image = ImageTk.PhotoImage(Image.open(scatter_file)) 
         self.load_data_type_button.config(image = self.load_data_type_image)
 
     def __change_plot_color(self):
-
-        self.default_plot_color_counter += 1
-        index = self.default_plot_color_counter%len(self.default_plot_colors)
+        
+        index = self.default_plot_color_counter
+        self.next_plot_color()
         self.load_data_color = self.default_plot_colors[index]
         self.load_data_color_button.config(bg = self.load_data_color)
+
+    def __change_plot_legend(self):
+        
+        color_index = 0 if self.load_data_legend == True else 1
+        self.load_data_legend = color_index
+        self.load_data_legend_button.config(bg=self.highlight_colors[color_index])
 
     def __switch_linlog(self, order):
         

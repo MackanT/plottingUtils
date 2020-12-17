@@ -18,9 +18,19 @@ class DataSeries:
         self.has_drawn = False
         self.has_animation = False
         self.has_color = False
+        self.has_legend = False
 
     def get_tag(self):
         return self.tag
+
+    def set_legend(self, data_input):
+        index = data_input.find('=') + 1
+        self.legend_name = data_input[index:]
+        self.has_legend = True
+
+    def get_legend(self):
+        if self.has_legend: return self.legend_name
+        else: return None
 
     def is_animated(self):
         return self.has_animation
