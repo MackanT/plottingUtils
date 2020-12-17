@@ -411,77 +411,81 @@ class Plot:
         """
         Creates auto focus button on graph
         """
-        self.home_button = Button(self.canvas, font='bold', text='\U0001f3e0', 
-                                  width=2, command=self.auto_focus, 
-                                  bg=self.highlight_colors[1])
+
+        image_file = self.file_image_location + '\\home.png'
+        self.button_image_auto_home = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.home_button = Button(self.canvas, width = 30, 
+                                height = 35, command=self.auto_focus, 
+                                bg = self.bg_color, image = self.button_image_auto_home)
         self.home_button.place(x=self.canvas_boundary[2] - 5,
                                y=self.canvas_boundary[1] - 5, anchor=SE)
         
     def __add_scale_units_button(self):
-        """
-        Allows for manual switching of units on the axis numbers
-        self.__scale_unit_iter is default type which is float
-        """
+        """ Allows for manual switching of units on the axis numbers
+        self.__scale_unit_iter is default type which is float """
         
         self.__scale_unit_iter = 0
         
-        self.scale_unit_button = Button(self.canvas, text='e', font='bold', 
-                                        width=2, command=self.change_unit_scale, 
-                                        bg=self.highlight_colors[1])
-        self.scale_unit_button.place(x=self.canvas_boundary[2] - 35,
+        image_file = self.file_image_location + '\\scientific.png'
+        self.button_image_axis_unit = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.scale_unit_button = Button(self.canvas, width = 30, 
+                                height = 35, command=self.change_unit_scale, 
+                                bg = self.bg_color, image = self.button_image_axis_unit)
+        self.scale_unit_button.place(x=self.canvas_boundary[2] - 45,
                                      y=self.canvas_boundary[1] - 5, anchor=SE)
 
     def change_unit_scale(self):
-        """
-        Keeps track of which units are printed on the axis
-        Sets and updates graph accordingly
-        """
+        """ Keeps track of which units are printed on the axis
+        Sets and updates graph accordingly """
+        
         self.__scale_unit_iter += 1
         self.__scale_unit_iter %= 5
 
         if self.__scale_unit_iter == 0:
             self.show_axis_custom = ''
-            tex = '\u2091'
+            tex = 'scientific'
             style = '{:.2f}'
         elif self.__scale_unit_iter == 1:
-            tex = '%'
+            tex = 'percent'
             style = '{:.2e}'
         elif self.__scale_unit_iter == 2:
-            tex = '\u23f0' #u23F0
+            tex = 'time' #u23F0
             style = '{:.2%}'
         elif self.__scale_unit_iter == 3:
             self.show_axis_custom = 'time'
-            tex = ''
+            tex = 'blank'
             style = '{:.2f}'
             # Add Time
         elif self.__scale_unit_iter == 4:
             self.show_axis_custom = 'blank'
-            tex = ','
+            tex = 'number'
             style = ''
 
-        self.scale_unit_button.config(text = tex)
+        image_file = self.file_image_location + '\\' + tex + '.png'
+        self.button_image_axis_unit = ImageTk.PhotoImage(Image.open(image_file)) 
+
+        self.scale_unit_button.config(image = self.button_image_axis_unit)
         self.scale_unit_style = style
         self.set_axis_numbers(len(self.x_axis_numbers) - 1, 'x')
         self.set_axis_numbers(len(self.y_axis_numbers) - 1, 'y')
 
     def __add_datapoint_selector(self):
-        """
-        Creates data selection button
-        """
-        self.datapoint_selector = Button(self.canvas, font='bold', 
-                                                text='\U0001f4cc', width=2, 
-                                                command=self.select_datapoint, 
-                                                bg=self.highlight_colors[1])
-        self.datapoint_selector.place(x=self.canvas_boundary[2] - 65,
+        """ Creates data selection button """
+
+        image_file = self.file_image_location + '\\select.png'
+        self.button_image_select_point = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.datapoint_selector = Button(self.canvas, width = 30, 
+                                height = 35, command=self.select_datapoint, 
+                                bg = self.bg_color, image = self.button_image_select_point)
+        self.datapoint_selector.place(x=self.canvas_boundary[2] - 85,
                                       y=self.canvas_boundary[1] - 5, anchor=SE)
-        # u2316
 
     def select_datapoint(self):
         if self.datapoints_selection == False:
             self.datapoint_selector.config(bg=self.highlight_colors[2])
             self.datapoints_selection = True
         else:
-            self.datapoint_selector.config(bg=self.highlight_colors[1])
+            self.datapoint_selector.config(bg=self.bg_color)
             self.datapoints_selection = False
 
     def find_datapoint(self, x, y):
