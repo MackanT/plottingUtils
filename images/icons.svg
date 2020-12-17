@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="22.627417"
-     inkscape:cx="190.03111"
-     inkscape:cy="200.55216"
+     inkscape:zoom="16"
+     inkscape:cx="199.16412"
+     inkscape:cy="197.27442"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -44,7 +44,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -53,11 +53,12 @@
      inkscape:groupmode="layer"
      id="layer1">
     <g
-       id="g953"
-       transform="translate(2.9174139,0.04092565)"
-       inkscape:export-xdpi="153.16"
-       inkscape:export-ydpi="153.16">
+       id="g872">
       <g
+         inkscape:export-ydpi="153.16"
+         inkscape:export-xdpi="153.16"
+         inkscape:export-filename="C:\Users\Thomas Ortenberg\Downloads\test.png"
+         transform="translate(2.9174139,0.04092565)"
          id="g839">
         <path
            style="fill:none;stroke:#000000;stroke-width:0.10583333;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
@@ -76,45 +77,66 @@
            inkscape:connector-curvature="0" />
       </g>
       <circle
+         inkscape:export-ydpi="153.16"
+         inkscape:export-xdpi="153.16"
+         inkscape:export-filename="C:\Users\Thomas Ortenberg\Downloads\test.png"
          r="0.13229166"
-         cy="246.60385"
-         cx="50.293491"
+         cy="246.64478"
+         cx="53.210907"
          id="path841"
          style="opacity:1;fill:#5fbff9;fill-opacity:1;stroke:none;stroke-width:0.079;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
       <circle
+         inkscape:export-ydpi="153.16"
+         inkscape:export-xdpi="153.16"
+         inkscape:export-filename="C:\Users\Thomas Ortenberg\Downloads\test.png"
          r="0.13229167"
-         cy="246.45898"
-         cx="50.724503"
+         cy="246.49991"
+         cx="53.641918"
          id="path841-0"
          style="opacity:1;fill:#5fbff9;fill-opacity:1;stroke:none;stroke-width:0.079;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
       <circle
+         inkscape:export-ydpi="153.16"
+         inkscape:export-xdpi="153.16"
+         inkscape:export-filename="C:\Users\Thomas Ortenberg\Downloads\test.png"
          r="0.13229166"
-         cy="245.92061"
-         cx="51.369972"
+         cy="245.96153"
+         cx="54.287388"
          id="path841-4"
          style="opacity:1;fill:#5fbff9;fill-opacity:1;stroke:none;stroke-width:0.079;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
       <circle
+         inkscape:export-ydpi="153.16"
+         inkscape:export-xdpi="153.16"
+         inkscape:export-filename="C:\Users\Thomas Ortenberg\Downloads\test.png"
          r="0.13229166"
-         cy="246.23045"
-         cx="51.076153"
+         cy="246.27138"
+         cx="53.993568"
          id="path841-5"
          style="opacity:1;fill:#5fbff9;fill-opacity:1;stroke:none;stroke-width:0.079;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
       <circle
+         inkscape:export-ydpi="153.16"
+         inkscape:export-xdpi="153.16"
+         inkscape:export-filename="C:\Users\Thomas Ortenberg\Downloads\test.png"
          r="0.13229166"
-         cy="245.5434"
-         cx="51.638695"
+         cy="245.58432"
+         cx="54.55611"
          id="path841-7"
          style="opacity:1;fill:#5fbff9;fill-opacity:1;stroke:none;stroke-width:0.079;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
       <circle
+         inkscape:export-ydpi="153.16"
+         inkscape:export-xdpi="153.16"
+         inkscape:export-filename="C:\Users\Thomas Ortenberg\Downloads\test.png"
          r="0.13229166"
-         cy="245.15854"
-         cx="51.874527"
+         cy="245.19946"
+         cx="54.791943"
          id="path841-7-4"
          style="opacity:1;fill:#5fbff9;fill-opacity:1;stroke:none;stroke-width:0.079;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
       <circle
+         inkscape:export-ydpi="153.16"
+         inkscape:export-xdpi="153.16"
+         inkscape:export-filename="C:\Users\Thomas Ortenberg\Downloads\test.png"
          r="0.13229166"
-         cy="244.80299"
-         cx="52.060558"
+         cy="244.84392"
+         cx="54.977974"
          id="path841-7-8"
          style="opacity:1;fill:#5fbff9;fill-opacity:1;stroke:none;stroke-width:0.079;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     </g>
@@ -155,5 +177,120 @@
            inkscape:connector-curvature="0" />
       </g>
     </g>
+    <g
+       id="g941"
+       inkscape:export-xdpi="153.16"
+       inkscape:export-ydpi="153.16">
+      <g
+         inkscape:export-ydpi="153.16"
+         inkscape:export-xdpi="153.16"
+         inkscape:export-filename="C:\Users\Thomas Ortenberg\Downloads\test.png"
+         transform="translate(2.9613005,3.366613)"
+         id="g839-6">
+        <path
+           style="fill:none;stroke:#000000;stroke-width:0.10583333;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           d="m 50.010979,244.35417 v 2.63485 h 2.634854"
+           id="path815-1"
+           inkscape:connector-curvature="0" />
+        <path
+           style="fill:none;stroke:#000000;stroke-width:0.079375;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           d="m 49.792674,244.69512 0.218305,-0.37812 0.216365,0.37475"
+           id="path819-3"
+           inkscape:connector-curvature="0" />
+        <path
+           style="fill:none;stroke:#000000;stroke-width:0.07937501;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           d="m 52.302869,246.77072 0.37812,0.2183 -0.37475,0.21636"
+           id="path819-9-14"
+           inkscape:connector-curvature="0" />
+      </g>
+      <circle
+         inkscape:export-ydpi="153.16"
+         inkscape:export-xdpi="153.16"
+         inkscape:export-filename="C:\Users\Thomas Ortenberg\Downloads\test.png"
+         r="0.13229166"
+         cy="249.97046"
+         cx="53.254795"
+         id="path841-1"
+         style="opacity:1;fill:#5fbff9;fill-opacity:1;stroke:none;stroke-width:0.079;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <circle
+         inkscape:export-ydpi="153.16"
+         inkscape:export-xdpi="153.16"
+         inkscape:export-filename="C:\Users\Thomas Ortenberg\Downloads\test.png"
+         r="0.13229166"
+         cy="249.59706"
+         cx="54.037457"
+         id="path841-5-3"
+         style="opacity:1;fill:#5fbff9;fill-opacity:1;stroke:none;stroke-width:0.079;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <circle
+         inkscape:export-ydpi="153.16"
+         inkscape:export-xdpi="153.16"
+         inkscape:export-filename="C:\Users\Thomas Ortenberg\Downloads\test.png"
+         r="0.13229166"
+         cy="248.91"
+         cx="54.599998"
+         id="path841-7-1"
+         style="opacity:1;fill:#5fbff9;fill-opacity:1;stroke:none;stroke-width:0.079;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <circle
+         inkscape:export-ydpi="153.16"
+         inkscape:export-xdpi="153.16"
+         inkscape:export-filename="C:\Users\Thomas Ortenberg\Downloads\test.png"
+         r="0.13229166"
+         cy="248.1696"
+         cx="55.021862"
+         id="path841-7-8-8"
+         style="opacity:1;fill:#5fbff9;fill-opacity:1;stroke:none;stroke-width:0.079;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    </g>
+    <g
+       id="g987"
+       inkscape:export-xdpi="153.16"
+       inkscape:export-ydpi="153.16">
+      <path
+         sodipodi:nodetypes="cc"
+         inkscape:connector-curvature="0"
+         id="path899-7-4"
+         d="m 49.360879,249.85699 c 1.137967,-0.0473 1.718514,-1.03057 2.120801,-1.94303"
+         style="fill:none;fill-opacity:1;stroke:#5fbff9;stroke-width:0.265;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <g
+         id="g839-8-3"
+         transform="translate(-0.63296723,3.2311691)">
+        <path
+           style="fill:none;stroke:#000000;stroke-width:0.10583333;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           d="m 50.010979,244.35417 v 2.63485 h 2.634854"
+           id="path815-5-4"
+           inkscape:connector-curvature="0" />
+        <path
+           style="fill:none;stroke:#000000;stroke-width:0.079375;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           d="m 49.792674,244.69512 0.218305,-0.37812 0.216365,0.37475"
+           id="path819-0-4"
+           inkscape:connector-curvature="0" />
+        <path
+           style="fill:none;stroke:#000000;stroke-width:0.07937501;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           d="m 52.302869,246.77072 0.37812,0.2183 -0.37475,0.21636"
+           id="path819-9-1-8"
+           inkscape:connector-curvature="0" />
+      </g>
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="45.442184"
+       y="246.67958"
+       id="text991"><tspan
+         sodipodi:role="line"
+         id="tspan989"
+         x="45.442184"
+         y="246.67958"
+         style="font-size:2.11666656px;stroke-width:0.26458332">V1</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="45.368805"
+       y="249.63441"
+       id="text991-7"><tspan
+         sodipodi:role="line"
+         id="tspan989-4"
+         x="45.368805"
+         y="249.63441"
+         style="font-size:2.11666656px;stroke-width:0.26458332">V2</tspan></text>
   </g>
 </svg>

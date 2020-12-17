@@ -1,4 +1,5 @@
 from tkinter import *
+from PIL import ImageTk,Image
 from DataSeries import DataSeries
 import math
 import numpy as np
@@ -22,6 +23,7 @@ class Plot:
         self.fg_color = '#313638'
         self.highlight_colors = ['#EF6461', '#9CD08F', '#E4B363', 
                                  '#E8E9EB', '#5C6B73']
+        # Red, Green, Yellow, Gray, Slate
         self.default_plot_colors = ['#5FBFF9', '#E85F5C', '#B2FFD6', 
                                     '#F9C784', '#343434', '#613F75']
         self.default_plot_color_counter = 0
@@ -47,7 +49,7 @@ class Plot:
 
 
         self.canvas = Canvas(self.root_window, width = self.screen_width, 
-                             height = self.screen_height, bg=self.bg_color, 
+                             height = self.screen_height, bg=self.highlight_colors[3], 
                              bd = 0, highlightthickness = 0)
         self.set_canvas_dimensions()
         self.canvas.place(x = 0, y = 0)
@@ -78,6 +80,10 @@ class Plot:
                 + '\\saveData'
         if not os.path.exists(self.file_save_location): 
                 os.makedirs(self.file_save_location)
+
+        self.file_image_location = os.path.dirname(os.path.realpath(__file__)) \
+                + '\\images'
+
 
         """
         rewrite as nicer array of scale factors.... Maybe??
@@ -1307,15 +1313,19 @@ class Plot:
     
     def load_data(self):
 
-        tag = self.load_text_input.get()
+        tag = self.om_load_variable.get()
+        if tag == '': return 
 
-        data_name = self.file_save_location + '\\' + str(tag) + '.npy'
+        data_name = self.file_save_location + '\\' + str(tag)
         if os.path.exists(data_name):
-
-            data_type = 'scatter' if 'ext' in data_name else 'line'
             
+            self.add_dataset(tag)
+            dataset = self.find_dataset(tag)
+            dataset.set_color(self.load_data_color)
+
             data = np.load(data_name)    
-            self.graph(data[0,:], data[1,:], str(tag), data_type)
+            self.graph(data[0,:], data[1,:], str(tag), self.load_data_type)
+
 
 
     # Plot Editor
@@ -1497,6 +1507,24 @@ class Plot:
 
         self.load_data_name_selection = self.editor_canvas.create_text(465, 118, anchor=W, text='')
 
+        # Load Selections
+
+        scatter_file = self.file_image_location + '\\scatter_2.png'
+        self.load_data_type = 'scatter'
+        self.load_data_type_image = ImageTk.PhotoImage(Image.open(scatter_file)) 
+        self.load_data_type_button = Button(self.editor_canvas, width = 40, 
+                                height = 30, command=self.__change_plot_type, 
+                                bg = self.bg_color, image = self.load_data_type_image)
+        self.load_data_type_button.place(x=450,y=74, anchor=NW)
+
+        index = self.default_plot_color_counter%len(self.default_plot_colors)
+        self.load_data_color = self.default_plot_colors[index]
+        self.load_data_color_button = Button(self.editor_canvas, width = 4, 
+                                height = 1, command=self.__change_plot_color, 
+                                bg = self.load_data_color)
+        self.load_data_color_button.place(x=510,y=74, anchor=NW)
+        
+
         # Best Fit, not in use
         # self.bestFitButton = Button(self.editor_canvas, text='Best Fit', command=self.__bestFit)
         # self.bestFitButton.place(x= 450, y = 10)
@@ -1602,6 +1630,22 @@ class Plot:
         
         tag = self.om_load_variable.get()
         self.editor_canvas.itemconfig(self.load_data_name_selection, text=tag)
+
+    def __change_plot_type(self):
+
+        data_type = 'scatter' if self.load_data_type == 'line' else 'line'
+
+        self.load_data_type = data_type
+        scatter_file = self.file_image_location + '\\' + data_type + '_2.png'
+        self.load_data_type_image = ImageTk.PhotoImage(Image.open(scatter_file)) 
+        self.load_data_type_button.config(image = self.load_data_type_image)
+
+    def __change_plot_color(self):
+
+        self.default_plot_color_counter += 1
+        index = self.default_plot_color_counter%len(self.default_plot_colors)
+        self.load_data_color = self.default_plot_colors[index]
+        self.load_data_color_button.config(bg = self.load_data_color)
 
     def __switch_linlog(self, order):
         
