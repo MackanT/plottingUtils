@@ -78,6 +78,7 @@ class Plot:
         self.root_window.bind('<Left>', self.left_arrow_key_command)
         self.root_window.bind('<Up>', self.up_arrow_key_command)
         self.root_window.bind('<Down>', self.down_arrow_key_command)
+        self.root_window.bind('<Delete>', self.delete_arrow_key_command)
 
         # Save Locations
         self.file_save_location = os.path.dirname(os.path.realpath(__file__)) \
@@ -1218,6 +1219,20 @@ class Plot:
             y_scale = (self.y_boundary[-1]-self.y_boundary[0])/100
             self.plotted_text_position[txt_index][1] -= y_scale
             self.update_text_pos(txt_index)
+
+    def delete_arrow_key_command(self, event):
+        if self.plot_editor_selected_item != None:
+            txt_index = self.find_text(self.plot_editor_selected_item)
+            if txt_index == None: return
+            self.plot.delete(self.plotted_text[txt_index])
+            self.plotted_text.pop(txt_index)
+            self.plotted_text_tags.pop(txt_index)
+            self.plotted_text_position.pop(txt_index)
+            self.__select_item()
+            print(len(self.plotted_text_position))
+            
+            
+            # self.update_text_pos(txt_index)
 
     # Markers
 
