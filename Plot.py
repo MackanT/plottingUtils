@@ -1401,13 +1401,19 @@ class Plot:
         self.__add_focus_listeners(self.x_scale_steps)
         self.x_scale_steps.bind("<Return>", lambda event: 
                                 self.set_grid_lines('x', self.x_scale_steps.get()))
-        self.x_grid_button = Button(self.editor_canvas, text='On', width=5, 
+        
+        image_file = self.file_image_location + '\\on.png'
+        self.button_image_on = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.x_grid_button = Button(self.editor_canvas, width=25, height=25, 
                     command=lambda: self.__enable_grid('x'), 
-                    bg=self.highlight_colors[1])
-        self.x_grid_button.place(x=145,y=75, anchor=NW)
+                    bg=self.highlight_colors[1], image=self.button_image_on)
+        self.x_grid_button.place(x=145,y=70, anchor=NW)
 
-        self.x_linlog_button = Button(self.editor_canvas, text='lin', width=5, 
-                    command=lambda: self.__switch_linlog('x'), bg=self.bg_color)
+        image_file = self.file_image_location + '\\lin.png'
+        self.button_image_linlog_x = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.x_linlog_button = Button(self.editor_canvas, width=25, height=25, 
+                    command=lambda: self.__switch_linlog('x'), bg=self.bg_color, 
+                    image=self.button_image_linlog_x)
         self.x_linlog_button.place(x=145,y=105, anchor=NW)
 
 
@@ -1435,14 +1441,16 @@ class Plot:
         self.y_scale_steps.bind("<Return>", lambda event: 
                                 self.set_grid_lines('y', self.y_scale_steps.get()))
 
-        self.y_grid_button = Button(self.editor_canvas, text='On', width=5, 
-                                command=lambda: self.__enable_grid('y'), 
-                                bg=self.highlight_colors[1])
-        self.y_grid_button.place(x=145,y=165, anchor=NW)
-
-        self.y_linlog_button = Button(self.editor_canvas, text='lin', width=5, 
-                                command=lambda: self.__switch_linlog('y'), 
-                                bg=self.bg_color)
+        self.y_grid_button = Button(self.editor_canvas, width=25, height=25, 
+                    command=lambda: self.__enable_grid('y'), 
+                    bg=self.highlight_colors[1], image=self.button_image_on)
+        self.y_grid_button.place(x=145,y=160, anchor=NW)
+        
+        image_file = self.file_image_location + '\\lin.png'
+        self.button_image_linlog_y = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.y_linlog_button = Button(self.editor_canvas, width=25, height=25, 
+                    command=lambda: self.__switch_linlog('y'), bg=self.bg_color, 
+                    image=self.button_image_linlog_y)
         self.y_linlog_button.place(x=145,y=195, anchor=NW)
 
         # Labels
@@ -1598,19 +1606,29 @@ class Plot:
     def __update_editor_buttons(self, *args):
         for button in args:
             if button == 'x_grid':
-                x_grid_text = 'On' if self.has_x_grid == True else 'Off'
                 x_grid_color = self.highlight_colors[1] if self.has_x_grid == True else self.highlight_colors[0]
-                self.x_grid_button.config(text = x_grid_text, bg=x_grid_color)
+                self.x_grid_button.config(bg=x_grid_color)
                 if self.scale_type[0] == 'log': self.x_scale_steps.config(state='disabled')
                 elif self.scale_type[0] == 'lin': self.x_scale_steps.config(state='normal')
             elif button == 'y_grid':
-                y_grid_text = 'On' if self.has_y_grid == True else 'Off'
                 y_grid_color = self.highlight_colors[1] if self.has_y_grid == True else self.highlight_colors[0]
-                self.y_grid_button.config(text = y_grid_text, bg=y_grid_color)
+                self.y_grid_button.config(bg=y_grid_color)
                 if self.scale_type[1] == 'log': self.y_scale_steps.config(state='disabled')
                 elif self.scale_type[1] == 'lin': self.y_scale_steps.config(state='normal')
-            elif button == 'x_linlog': self.x_linlog_button.config(text=self.scale_type[0])
-            elif button == 'y_linlog': self.y_linlog_button.config(text=self.scale_type[1])
+            elif button == 'x_linlog':              
+                if self.scale_type[0] == 'lin':
+                    image_file = self.file_image_location + '\\lin.png'
+                elif self.scale_type[0] == 'log':
+                    image_file = self.file_image_location + '\\log.png'
+                self.button_image_linlog_x = ImageTk.PhotoImage(Image.open(image_file)) 
+                self.x_linlog_button.config(image=self.button_image_linlog_x)
+            elif button == 'y_linlog': 
+                if self.scale_type[1] == 'lin':
+                    image_file = self.file_image_location + '\\lin.png'
+                elif self.scale_type[1] == 'log':
+                    image_file = self.file_image_location + '\\log.png'
+                self.button_image_linlog_y = ImageTk.PhotoImage(Image.open(image_file)) 
+                self.y_linlog_button.config(image=self.button_image_linlog_y)
             elif button == 'sel_item': 
                 if self.plot_editor_selected_counter == 0: 
                     selText = 'Select Item'
