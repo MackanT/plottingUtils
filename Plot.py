@@ -72,8 +72,12 @@ class Plot:
         self.has_animation = False
         self.animation_speed = 1
         self.animation_tags = []
+
+
         self.root_window.bind('<Right>', self.right_arrow_key_command)
         self.root_window.bind('<Left>', self.left_arrow_key_command)
+        self.root_window.bind('<Up>', self.up_arrow_key_command)
+        self.root_window.bind('<Down>', self.down_arrow_key_command)
 
         # Save Locations
         self.file_save_location = os.path.dirname(os.path.realpath(__file__)) \
@@ -569,9 +573,7 @@ class Plot:
         else: self.canvas.itemconfig(self.title, text = text)         
 
     def add_text(self, position, text, tag):
-        """
-        Sets text on graph
-        """
+        """ Sets text on graph """
         self.plotted_text_position.append(position)
         scaled_pos = [self.scale_vector(position[0], 'x'), 
                       self.scale_vector(position[1], 'y')]
@@ -587,6 +589,14 @@ class Plot:
         if text_item != None:
             self.plot.itemconfig(self.plotted_text[text_item], text = text)
             return
+
+    def find_text(self, content):
+
+        text = self.plot.itemcget(content, 'text')
+        for i in range(len(self.plotted_text)):
+            if self.plot.itemcget(self.plotted_text[i], 'text') == text:
+                return i    
+
 
     # Axis
 
@@ -1126,6 +1136,7 @@ class Plot:
             
             self.update_plots('bFit')
     
+
     def update_plots(self, *args):
         if args[0] == 'all':
             for dataset in self.data_series:
@@ -1138,11 +1149,7 @@ class Plot:
                     else: new_index = 0
                     dataset.update_item(new_x, new_y, new_index)
             for i in range(len(self.plotted_text)):      
-                position = self.plotted_text_position[i]
-                scaled_pos = [self.scale_vector(position[0], 'x'), 
-                              self.scale_vector(position[1], 'y')]
-                self.plot.moveto(self.plotted_text[i], scaled_pos[0], 
-                                 scaled_pos[1])
+                self.update_text_pos(i)
             for i in range(len(self.marked_points)):
                 position = self.marked_points[i]
                 scaled_pos = [self.scale_vector(position[0], 'x'), 
@@ -1151,7 +1158,14 @@ class Plot:
                                 scaled_pos[1] - 3)
                 self.plot.moveto(self.marked_text[i], scaled_pos[0] + 5, 
                                 scaled_pos[1] - 7)
-                
+
+    def update_text_pos(self, i):
+        position = self.plotted_text_position[i]
+        scaled_pos = [self.scale_vector(position[0], 'x'), 
+                      self.scale_vector(position[1], 'y')]
+        self.plot.moveto(self.plotted_text[i], scaled_pos[0], 
+                         scaled_pos[1])
+
     def enable_animator(self, length):
         if self.has_animation == False:
             self.animationScrollbar = Scale(self.canvas, from_=1, to=length, 
@@ -1167,14 +1181,43 @@ class Plot:
         for tag in self.animation_tags: self.find_dataset(tag).move_item(value)
 
     def right_arrow_key_command(self, event):
-        if self.has_animation == True:
+        if self.plot_editor_selected_item != None:
+            txt_index = self.find_text(self.plot_editor_selected_item)
+            if txt_index == None: return
+            x_scale = (self.x_boundary[-1]-self.x_boundary[0])/100
+            self.plotted_text_position[txt_index][0] += x_scale
+            self.update_text_pos(txt_index)
+            
+        elif self.has_animation == True:
             self.animationScrollbar.set(self.animationScrollbar.get()
                                         + self.animation_speed)
 
     def left_arrow_key_command(self, event):
-        if self.has_animation == True:
+        if self.plot_editor_selected_item != None:
+            txt_index = self.find_text(self.plot_editor_selected_item)
+            if txt_index == None: return
+            x_scale = (self.x_boundary[-1]-self.x_boundary[0])/100
+            self.plotted_text_position[txt_index][0] -= x_scale
+            self.update_text_pos(txt_index)
+        elif self.has_animation == True:
             self.animationScrollbar.set(self.animationScrollbar.get() 
                                         - self.animation_speed)
+    
+    def up_arrow_key_command(self, event):
+        if self.plot_editor_selected_item != None:
+            txt_index = self.find_text(self.plot_editor_selected_item)
+            if txt_index == None: return
+            y_scale = (self.y_boundary[-1]-self.y_boundary[0])/100
+            self.plotted_text_position[txt_index][1] += y_scale
+            self.update_text_pos(txt_index)
+    
+    def down_arrow_key_command(self, event):
+        if self.plot_editor_selected_item != None:
+            txt_index = self.find_text(self.plot_editor_selected_item)
+            if txt_index == None: return
+            y_scale = (self.y_boundary[-1]-self.y_boundary[0])/100
+            self.plotted_text_position[txt_index][1] -= y_scale
+            self.update_text_pos(txt_index)
 
     # Markers
 

@@ -24,8 +24,9 @@ class DataSeries:
         return self.tag
 
     def set_legend(self, data_input):
-        index = data_input.find('=') + 1
-        self.legend_name = data_input[index:]
+        # index = data_input.find('=') + 1
+        # self.legend_name = data_input[index:]
+        self.legend_name = data_input
         self.has_legend = True
 
     def get_legend(self):
