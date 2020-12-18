@@ -1060,7 +1060,10 @@ class Plot:
 
     # Plot Data
 
-    def graph(self, x, y, tag, *args):
+    def graph(self, x, y, tag, *args, legend=None):
+        """
+        Args: legend=, line, scatter, animate, log, show
+        """
         self.has_graph = True
 
         dataset = self.find_dataset(tag)
@@ -1083,7 +1086,8 @@ class Plot:
                 self.scale_type[0] = 'log'
                 self.scale_type[1] = 'log'
             elif name == 'show': grid_state = True
-            elif 'legend=' in name: dataset.set_legend(name)
+        
+        if legend != None: dataset.set_legend(legend)
 
         dataset.add_points(x,y)
         self.auto_focus()
@@ -1097,9 +1101,6 @@ class Plot:
         
         dataset.set_plot_type(plot_type)
         dataset.draw(plot_range)
-
-        # if dataset.get_legend() != None: 
-        #     self.add_to_legend(dataset.get_legend(), dataset.get_color())
 
     ### nPart of ginput!  
     def gen_x_path(self, points, x_start, x_end):
