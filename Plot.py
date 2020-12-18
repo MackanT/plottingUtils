@@ -563,9 +563,7 @@ class Plot:
     # Plot Text
 
     def set_title(self, text):
-        """
-        Sets/Updates title
-        """
+        """ Sets/Updates title, Text = conent """
         if self.has_title == False:
             self.has_title = True
             self.title = self.canvas.create_text(self.screen_width/2, 
@@ -574,7 +572,7 @@ class Plot:
         else: self.canvas.itemconfig(self.title, text = text)         
 
     def add_text(self, position, text, tag):
-        """ Sets text on graph """
+        """ Sets text on graph: Position = [x, y], Text = content, Tag = reference  """
         self.plotted_text_position.append(position)
         scaled_pos = [self.scale_vector(position[0], 'x'), 
                       self.scale_vector(position[1], 'y')]
@@ -583,16 +581,14 @@ class Plot:
         self.plotted_text_tags.append(tag)
 
     def update_text(self, text, tag):
-        """
-        Updates text on graph
-        """
+        """ Updates existing text on graph, Text = content, Tag = reference """
         text_item = self.find_tag_number(tag, self.plotted_text_tags)
         if text_item != None:
             self.plot.itemconfig(self.plotted_text[text_item], text = text)
             return
 
     def find_text(self, content):
-
+        """ Returns index of text item, Content = widget to search"""
         text = self.plot.itemcget(content, 'text')
         for i in range(len(self.plotted_text)):
             if self.plot.itemcget(self.plotted_text[i], 'text') == text:
@@ -640,9 +636,7 @@ class Plot:
         self.update_plots('all')
 
     def set_labels(self, textx, texty):
-        """
-        Sets/Updates axis labels
-        """
+        """ Sets/Updates axis labels, Textx = X Label, Texty = Y Label """
         if self.has_x_label == False:
             self.has_x_label = True
             p1 = self.screen_width/2
@@ -679,10 +673,8 @@ class Plot:
             else: self.y0 = abs_term * plot_dim
 
     def set_x_axis(self, x_start, x_end, *args):
-        """
-        Sets X-Axis with all possible arguments. 
-        Also auto sets axis numbers and grid if they are enabled
-        """
+        """ Sets X-Axis, Args: Keep = keeps axis, Lock = locks axis, Log = Log Axis,
+        Lin = Lin Axis, Show = show gridlines, Hidden = hide gridlines """
 
         update_plot = True
         auto_focus = False
@@ -746,10 +738,8 @@ class Plot:
         if update_plot: self.update_plots('all')
 
     def set_y_axis(self, y_start, y_end, *args):
-        """
-        Sets Y-Axis with all possible arguments. 
-        Also auto sets axis numbers and grid if they are enabled
-        """
+        """ Sets Y-Axis, Args: Keep = keeps axis, Lock = locks axis, Log = Log Axis,
+        Lin = Lin Axis, Show = show gridlines, Hidden = hide gridlines """
 
         update_plot = True
         auto_focus = False
@@ -1232,10 +1222,6 @@ class Plot:
             self.plotted_text_tags.pop(txt_index)
             self.plotted_text_position.pop(txt_index)
             self.__select_item()
-            print(len(self.plotted_text_position))
-            
-            
-            # self.update_text_pos(txt_index)
 
     # Markers
 
