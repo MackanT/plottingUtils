@@ -272,7 +272,9 @@ class Plot:
                                        self.canvas_boundary[2] + 50, 
                                        self.canvas_boundary[3] - i*dH 
                                        - self.font_size)       
-        
+        if self.has_legend: self.reposition_legend()
+
+
         self.home_button.place(x = self.canvas_boundary[2] - 5, 
                                y = self.canvas_boundary[1] - 5)
         self.scale_unit_button.place(x = self.canvas_boundary[2] - 45,
@@ -564,11 +566,12 @@ class Plot:
     # Plot Text
 
     def set_title(self, text):
-        """ Sets/Updates title, Text = conent """
+        """ Sets/Updates title, Text = content """
         if self.has_title == False:
             self.has_title = True
+            font = self.font + ' {}'.format(2*self.font_size)
             self.title = self.canvas.create_text(self.plot_dimensions[0]/2, 
-                        self.offset_y/2-2*self.font_size, font='%s %d' %(self.font, 2*self.font_size), 
+                        self.offset_y/2-2*self.font_size, font=font,
                         text = text, fill=self.fg_color, anchor=NW)
         else: self.canvas.itemconfig(self.title, text = text)         
 
@@ -954,27 +957,48 @@ class Plot:
     def set_legend(self, pos):
 
         self.has_legend = True
-        
-        names, colors = [], []
-        for dataset in self.data_series:
-            if dataset.get_legend() != None:
-                names.append(dataset.get_legend())
-                colors.append(dataset.get_color())
 
         if pos == 'NE': self.legend_pos = 'NE'
         elif pos == 'NW': self.legend_pos = 'NW'
         elif pos == 'SE': self.legend_pos = 'SE'
         elif pos == 'SW': self.legend_pos = 'SW'
 
+        names, colors = [], []
+        for dataset in self.data_series:
+            if dataset.get_legend() != None:
+                names.append(dataset.get_legend())
+                colors.append(dataset.get_color())
+
+        self.update_legend_offsets()
+        for i in range(len(names)): self.add_to_legend(names[i], colors[i])
+
+    def update_legend_offsets(self, tag=None):
+
+        names = []
+        for dataset in self.data_series:
+            if dataset.get_legend() != None: names.append(dataset.get_legend())
+        if tag != None: names.append(tag)
+
         text_length = len(max(names, key=len))
+        pos = self.legend_pos
         if pos[0]   == 'N': self.legend_y_offset = self.font_size
         if pos[0]   == 'S': self.legend_y_offset = (self.plot_dimensions[1] 
                                                     - len(names)*2*self.font_size)
         if pos[1]   == 'W': self.legend_x_offset = 2*self.font_size
         elif pos[1] == 'E': self.legend_x_offset = (self.plot_dimensions[0] 
-                                                    - text_length*self.font_size)
+                                                    - 2/3*text_length*self.font_size)
 
-        for i in range(len(names)): self.add_to_legend(names[i], colors[i])
+    def reposition_legend(self, tag=None):
+        
+        self.update_legend_offsets(tag)
+        for i in range(len(self.legend_content)):
+            self.plot.moveto(self.legend_content[i], self.legend_x_offset, 
+                             self.legend_y_offset + 2*i*self.font_size)
+
+        for i in range(len(self.legend_markers)):
+            self.plot.moveto(self.legend_markers[i], self.legend_x_offset
+                             - 3/2*self.font_size, self.legend_y_offset 
+                             + (2*i+1/4)*self.font_size)
 
     def add_to_legend(self, name, color):
 
@@ -1347,7 +1371,9 @@ class Plot:
             data = np.load(data_name)    
             self.graph(data[0,:], data[1,:], str(tag), self.load_data_type)
 
-            if self.load_data_legend: self.add_to_legend(tag, self.load_data_color)
+            if self.load_data_legend: 
+                self.add_to_legend(tag, self.load_data_color)
+                self.reposition_legend(tag=tag)
 
 
     # Plot Editor
