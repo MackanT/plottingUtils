@@ -9,14 +9,15 @@ from datetime import datetime
 class Plot:
 
 
-    def __init__(self, width, height, window_name):
+    def __init__(self, width, height, window_name, font_size=None, font_type=None):
         
         # Dimensions
         self.screen_width = width
         self.screen_height = height
-        self.offset_y = 85
-        self.font_size = 10
-        self.font_type = 'arial %d' %self.font_size
+        self.font_size = 10 if font_size == None else font_size
+        self.offset_y = 40 + 4*self.font_size
+        self.font = 'helvetica' if font_type == None else font_type
+        self.font_type = '%s %d' %(self.font, self.font_size)
         
         # Colors
         self.bg_color = '#E0DFD5'
@@ -243,6 +244,7 @@ class Plot:
         self.plot.config(width = self.plot_dimensions[0] * width_delta, 
                          height = self.plot_dimensions[1] * height_delta)
         self.plot.place(x = self.offset_x, y = self.offset_y)
+        
         self.auto_focus()
 
         if self.has_colorbar:
@@ -251,7 +253,7 @@ class Plot:
                                  y = self.canvas_boundary[1])
         if self.has_title: 
             self.canvas.moveto(self.title, self.plot_dimensions[0]/2, 
-                               2*self.font_size)
+                               self.offset_y/2-2*self.font_size)
         if self.has_y_label: 
             p1 = 2*self.font_size
             p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2
@@ -279,7 +281,6 @@ class Plot:
                                      y = self.canvas_boundary[1] - 5)
 
         self.raise_items()        
-
 
     # Drag and Drop screen
 
@@ -566,9 +567,9 @@ class Plot:
         """ Sets/Updates title, Text = conent """
         if self.has_title == False:
             self.has_title = True
-            self.title = self.canvas.create_text(self.screen_width/2, 
-                        4*self.font_size, font='arial %d' %(2*self.font_size), 
-                        text = text, fill=self.fg_color, anchor='center')
+            self.title = self.canvas.create_text(self.plot_dimensions[0]/2, 
+                        self.offset_y/2-2*self.font_size, font='%s %d' %(self.font, 2*self.font_size), 
+                        text = text, fill=self.fg_color, anchor=NW)
         else: self.canvas.itemconfig(self.title, text = text)         
 
     def add_text(self, position, text, tag):
