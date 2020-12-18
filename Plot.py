@@ -260,7 +260,7 @@ class Plot:
             self.canvas.moveto(self.y_label, p1, p2)
         if self.has_x_label:
             p1 = self.screen_width/2
-            p2 = self.canvas_boundary[3] + 3*self.font_size
+            p2 = self.canvas_boundary[3] + 2.5*self.font_size
             self.canvas.moveto(self.x_label, p1, p2)
         if self.has_colorbar:
             self.add_colorbar(self.color_bar_colors[0], 
@@ -641,9 +641,9 @@ class Plot:
         if self.has_x_label == False:
             self.has_x_label = True
             p1 = self.screen_width/2
-            p2 = self.canvas_boundary[3] + 3*self.font_size
+            p2 = self.canvas_boundary[3] + 2.5*self.font_size
             self.x_label = self.canvas.create_text(p1, p2, font=self.font_type,
-                                                text = textx, fill=self.fg_color)
+                                    text = textx, fill=self.fg_color, anchor=NW)
         elif textx != 'keep': self.canvas.itemconfig(self.x_label, text=textx)
 
         if self.has_y_label == False:
@@ -651,7 +651,8 @@ class Plot:
             p1 = 2*self.font_size
             p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2
             self.y_label = self.canvas.create_text(p1, p2, font=self.font_type, 
-                                    angle=90, text = texty, fill=self.fg_color)
+                                    angle=90, text = texty, fill=self.fg_color,
+                                    anchor=NE)
         elif texty != 'keep': self.canvas.itemconfig(self.y_label, text=texty)
 
     def set_zero(self, start, end, order):
