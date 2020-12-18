@@ -632,7 +632,7 @@ class Plot:
 
         # Used by log axis to auto set when changing lin/log
         for name in args:
-            if name == 'axis_x': return [min_x - delta_x, max_x + delta_x]
+            if   name == 'axis_x': return [min_x - delta_x, max_x + delta_x]
             elif name == 'axis_y': return [min_y - delta_y, max_y + delta_y]
 
         self.set_x_axis(min_x - delta_x, max_x + delta_x, 'drag')
@@ -921,9 +921,12 @@ class Plot:
                     self.y_grid_lines.append(self.plot.create_line(pos, fill="gray"))
 
     def set_grid_lines(self, order, num_ticks):
-        """
-        Sets requested gridlines
-        """
+        """ Sets requested gridlines """
+        
+        if not isinstance(num_ticks, int):
+            if not num_ticks.isnumeric(): return
+            else: num_ticks = int(num_ticks)
+        if num_ticks == 0: num_ticks = 1
 
         if order == 'x':
             self.has_x_grid = True
@@ -1411,9 +1414,7 @@ class Plot:
         self.x_scale_steps.place(x=10,y=112, anchor=NW)
         self.__add_focus_listeners(self.x_scale_steps)
         self.x_scale_steps.bind("<Return>", lambda event: 
-                                self.set_x_axis('keep', 'keep', 
-                                int(self.x_scale_steps.get())))
-
+                                self.set_grid_lines('x', self.x_scale_steps.get()))
         self.x_grid_button = Button(self.editor_canvas, text='On', width=5, 
                     command=lambda: self.__enable_grid('x'), 
                     bg=self.highlight_colors[1])
@@ -1446,8 +1447,7 @@ class Plot:
         self.y_scale_steps.place(x=10,y=202, anchor=NW)
         self.__add_focus_listeners(self.y_scale_steps)
         self.y_scale_steps.bind("<Return>", lambda event: 
-                                self.set_y_axis('keep','keep', 
-                                int(self.y_scale_steps.get())))
+                                self.set_grid_lines('y', self.y_scale_steps.get()))
 
         self.y_grid_button = Button(self.editor_canvas, text='On', width=5, 
                                 command=lambda: self.__enable_grid('y'), 
