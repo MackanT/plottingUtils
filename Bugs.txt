@@ -1,4 +1,23 @@
 
 ## Known Bugs --
 
-Scaling screen in only x misplaces title and colorbar, try to make colobar transparent instead of backgound color
+better format axis numbers, different number of decimal points
+
+switch order of legend
+
+add more markers, +, x, o etc.
+
+ling/log icons checkmark?
+on/off button
+
+drag screen in log, change #pixel to log value
+zoom in log scale
+log scale drag to smaller x z 0.1
+
+
+octave scale (1,2,4,8,16 etc. bas2)
+
+comic sans!
+
+
+home button, not move dots slightly

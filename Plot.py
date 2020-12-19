@@ -299,9 +299,7 @@ class Plot:
         self.plot.bind('<MouseWheel>', self.mouse_scrolled)
 
     def mouse_pressed(self, event):
-        """
-        Gets mouse click on plot area
-        """
+        """ Gets mouse click on plot area """
         if self.datapoints_selection == True:
             
             click_x = self.anti_scale_vector(event.x, 'x')
@@ -318,16 +316,14 @@ class Plot:
                 self.plot_drag_mouse_pos = [event.x, event.y]
 
     def mouse_dragged(self, event):
-        """
-        Allows for real time moving of the graphed data
-        """
+        """ Allows for real time moving of the graphed data """
 
         if self.plot_drag_mouse_clicked == True:
             delta_x = ((self.plot_drag_mouse_pos[0] - event.x) 
                             * self.x_scale_factor)
             delta_y = ((event.y - self.plot_drag_mouse_pos[1]) 
                             * self.y_scale_factor)
-            
+
             self.set_x_axis(self.x_boundary[0] + delta_x, 
                             self.x_boundary[-1] + delta_x)
             self.set_y_axis(self.y_boundary[0] + delta_y, 
@@ -602,10 +598,9 @@ class Plot:
     # Axis
 
     def auto_focus(self, *args):
-        """
-        Estimates a good x and y scale for the plotted data by
-        finding the min/max x/y for all data
-        """
+        """ Estimates a good x and y scale for the plotted data by 
+        finding the min/max x/y for all data """
+        
         first_data_serie = True
 
         for item in self.data_series:
@@ -809,10 +804,7 @@ class Plot:
         if update_plot: self.update_plots('all')
 
     def set_axis_numbers(self, num_ticks, order):
-        """
-        Called on to update axis numbers to viually 
-        show where data is located
-        """
+        """ Called on to update axis numbers to viually show where data is located """
 
         if order == 'x':
             if self.show_axis_custom == 'blank':
