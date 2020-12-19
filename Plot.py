@@ -728,7 +728,6 @@ class Plot:
                 self.x_boundary.append(x_start + i*valueSize)
             
         elif self.scale_type[0] == 'log':
-            
             if x_start <= 0: x_start, x_end = self.log_scale('axis_x')
             self.x_scale_factor = (x_end-x_start)/self.plot_dimensions[0]
             k = (x_start-x_end)/(math.log10(x_start)-math.log10(x_end))
@@ -856,9 +855,9 @@ class Plot:
         data_low, data_high = self.auto_focus(order)
         power_low = round(math.log10(abs(data_low)))
         power_high = round(math.log10(abs(data_high)))
-
-        if order == 'axis_x': return [10**(-power_low), 10**power_high]
-        elif order =='axis_y': return [10**power_low, 10**power_high]
+        
+        if   order == 'axis_x': return [10**(-power_low), 10**power_high]
+        elif order == 'axis_y': return [10**power_low, 10**power_high]
 
     def set_axis_scale_type(self, *args):
         """
@@ -1383,6 +1382,9 @@ class Plot:
                 self.reposition_legend(tag=tag)
 
 
+
+
+
     # Plot Editor
 
     def __open_plot_editor(self, event):
@@ -1537,8 +1539,9 @@ class Plot:
         self.__add_focus_listeners(self.select_item_text_input)
         self.select_item_text_input.bind("<Return>", self.__select_item_change)
 
-        self.select_item_button = Button(self.editor_canvas, text='Select Item', 
-                        bg=self.bg_color, width = 8, command=self.__select_item)
+        self.select_item_button = Button(self.editor_canvas, bg=self.bg_color, 
+                        width = 25, height=25, image=self.button_image_item_sel,
+                        command=self.__select_item)
         self.select_item_button.place(x= 360, y = 92)
 
     def __editor_animation(self):
@@ -1687,6 +1690,13 @@ class Plot:
         image_file = self.file_image_location + '\\log.png'
         self.button_image_log = ImageTk.PhotoImage(Image.open(image_file)) 
 
+        image_file = self.file_image_location + '\\item_select.png'
+        self.button_image_item_sel = ImageTk.PhotoImage(Image.open(image_file)) 
+        image_file = self.file_image_location + '\\item_selected.png'
+        self.button_image_item_selected = ImageTk.PhotoImage(Image.open(image_file)) 
+        image_file = self.file_image_location + '\\item_deselect.png'
+        self.button_image_item_desel = ImageTk.PhotoImage(Image.open(image_file)) 
+
     def __update_editor_buttons(self, *args):
         for button in args:
             if button == 'x_grid':
@@ -1712,19 +1722,14 @@ class Plot:
                 if self.scale_type[1] == 'lin':
                     self.y_linlog_button.config(image=self.button_image_lin)    
                 elif self.scale_type[1] == 'log':
-                     self.y_linlog_button.config(image=self.button_image_log)    
-                
+                     self.y_linlog_button.config(image=self.button_image_log)                   
             elif button == 'sel_item': 
                 if self.plot_editor_selected_counter == 0: 
-                    selText = 'Select Item'
-                    selColor = self.bg_color
+                    self.select_item_button.config(image=self.button_image_item_sel)    
                 elif self.plot_editor_selected_counter == 1:
-                    selText = 'Selecting Item'
-                    selColor = self.highlight_colors[1]
+                    self.select_item_button.config(image=self.button_image_item_selected)
                 elif self.plot_editor_selected_counter == 2:
-                    selText = 'Unselect Item'
-                    selColor = self.highlight_colors[0]
-                self.select_item_button.config(text=selText, bg=selColor)
+                    self.select_item_button.config(image=self.button_image_item_desel)
                 self.select_item_text_input.delete(0, 'end')
                 self.select_item_text_input.insert(0, 'Text Editor') 
             elif button == 'txt_input':
