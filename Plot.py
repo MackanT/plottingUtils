@@ -187,12 +187,16 @@ class Plot:
         for item in search_list: self.canvas.delete(int(item))            
         search_list.clear()
 
-    def find_dataset(self, tag):
+    def find_dataset(self, tag, forced=None):
         """
         Searches and returns the requested dataset
         """
         for item in self.data_series:
             if item.get_tag() == tag: return item
+        
+        if forced == 'new':
+            dataset = self.add_dataset(tag)
+            return self.data_series[-1]
 
     def find_tag_number(self, tag, search_list):
         """
@@ -755,12 +759,11 @@ class Plot:
             self.x_log_scale = [k, c]
 
             num_ticks = round(math.log10(x_end/x_start))
-
+            
             for i in range(num_ticks+1):
                 self.x_boundary.append(x_end * 10**(-num_ticks+i))
         
         self.set_axis_numbers(num_ticks, 'x')
-
         if self.has_x_grid == True: self.set_grid_lines('x', num_ticks)
         elif self.has_x_grid == False: self.remove_grid_lines('x')
         
@@ -1144,11 +1147,7 @@ class Plot:
         Args: legend=, line, scatter, animate, log, show
         """
         self.has_graph = True
-
-        dataset = self.find_dataset(tag)
-        if dataset == None: 
-            self.add_dataset(tag)
-            dataset = self.find_dataset(tag)
+        dataset = self.find_dataset(tag, forced='new')
 
         # Plotting Parameters
         plot_range = range(np.size(x))
