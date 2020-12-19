@@ -1617,10 +1617,10 @@ class Plot:
         self.save_data_tag_selector.config(bg=self.bg_color, width=1, font='bold')                                            
         self.save_data_tag_selector.place(x=580, y=22)
  
-        self.save_data_button = Button(self.editor_canvas, width=30, height=35, 
+        self.save_data_button = Button(self.editor_canvas, width=25, height=25, 
                                 command=lambda: self.save_data(self.om_save_variable.get()), 
                                 bg=self.bg_color, image=self.button_image_save_data)
-        self.save_data_button.place(x=640,y=22, width=40, anchor=NW)
+        self.save_data_button.place(x=640,y=22, anchor=NW)
 
         self.save_data_name_color = self.editor_canvas.create_oval(450, 36, 458, 44, state='hidden')
         self.save_data_name_selection = self.editor_canvas.create_text(465, 40, anchor=W, text='')
@@ -1637,10 +1637,10 @@ class Plot:
         self.load_data_tag_selector.config(bg=self.bg_color, width=1, font='bold')                                            
         self.load_data_tag_selector.place(x=580, y=74)
 
-        self.load_data_button = Button(self.editor_canvas, width=30, height=35, 
+        self.load_data_button = Button(self.editor_canvas, width=25, height=25, 
                                 command=lambda:self.load_data(), 
                                 bg=self.bg_color, image=self.button_image_load_data)
-        self.load_data_button.place(x=640,y=74, width=40, anchor=NW)
+        self.load_data_button.place(x=640,y=74, anchor=NW)
 
         self.load_data_name_selection = self.editor_canvas.create_text(465, 
                                                         128, anchor=W, text='')
@@ -1768,14 +1768,14 @@ class Plot:
                 elif self.scale_type[1] == 'lin': self.y_scale_steps.config(state='normal')
             elif button == 'x_linlog':              
                 if self.scale_type[0] == 'lin':
-                    self.x_linlog_button.config(image=self.button_image_lin)
-                elif self.scale_type[0] == 'log':
                     self.x_linlog_button.config(image=self.button_image_log)
+                elif self.scale_type[0] == 'log':
+                    self.x_linlog_button.config(image=self.button_image_lin)
             elif button == 'y_linlog': 
                 if self.scale_type[1] == 'lin':
-                    self.y_linlog_button.config(image=self.button_image_lin)    
+                    self.y_linlog_button.config(image=self.button_image_log)    
                 elif self.scale_type[1] == 'log':
-                     self.y_linlog_button.config(image=self.button_image_log)                   
+                     self.y_linlog_button.config(image=self.button_image_lin)                   
             elif button == 'sel_item': 
                 if self.plot_editor_selected_counter == 0: 
                     self.select_item_button.config(image=self.button_image_item_sel)    
