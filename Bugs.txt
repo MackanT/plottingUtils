@@ -3,21 +3,20 @@
 
 better format axis numbers, different number of decimal points
 
-switch order of legend
-
-add more markers, +, x, o etc.
-
-ling/log icons checkmark?
-on/off button
+border around plot editor, remove plz
 
 drag screen in log, change #pixel to log value
 zoom in log scale
 log scale drag to smaller x z 0.1
 
+log_scale() körs 2x ggr per click
+
+loading in data and auto-focus causes them to move slighlty first click
 
 octave scale (1,2,4,8,16 etc. bas2)
 
+changeing labals/title names stops them from auto setting-center
+
+data point select, rewrite with text inst. of oval.
+
 comic sans!
-
-
-home button, not move dots slightly
