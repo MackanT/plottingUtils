@@ -1302,9 +1302,8 @@ class Plot:
             self.__select_item()
 
     def escape_key_command(self, event):
-        if self.plot_editor_selected_item != None:
-            self.__select_item()
-            
+        if self.plot_editor_selected_item != None: self.__select_item()
+
     # Markers
 
     def set_markerbar(self, size_array, tag):
@@ -1423,6 +1422,7 @@ class Plot:
             self.add_dataset(tag)
             dataset = self.find_dataset(tag)
             dataset.set_color(self.load_data_color)
+            dataset.set_legend(tag)
 
             data = np.load(data_name)    
             self.graph(data[0,:], data[1,:], str(tag), self.load_data_type)
@@ -1981,5 +1981,16 @@ class Plot:
 
     def __select_item_change(self, event):
         if self.plot_editor_selected_item != None:
-            self.plot.itemconfig(self.plot_editor_selected_item, 
-                                    text=self.select_item_text_input.get())
+            
+            # If Legend, autosets new legend position
+            legend_index = self.find_legend(self.plot_editor_selected_item)
+            content = self.select_item_text_input.get()
+            if legend_index != None:
+                for item in self.data_series:
+                    if item.get_legend() == self.plot.itemcget(self.legend_content[legend_index], 'text'):
+                        item.set_legend(content)
+                        self.update_legend_offsets()
+                        self.reposition_legend()
+
+            self.plot.itemconfig(self.plot_editor_selected_item, text=content)
+                
