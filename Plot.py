@@ -258,7 +258,7 @@ class Plot:
             self.canvas.moveto(self.title, self.plot_dimensions[0]/2, 
                                self.offset_y/2-2*self.font_size)
         if self.has_y_label: 
-            p1 = 2*self.font_size
+            p1 = self.font_size
             p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2
             self.canvas.moveto(self.y_label, p1, p2)
         if self.has_x_label:
@@ -681,7 +681,7 @@ class Plot:
 
         if self.has_y_label == False:
             self.has_y_label = True
-            p1 = 2*self.font_size
+            p1 = self.font_size
             p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2
             self.y_label = self.canvas.create_text(p1, p2, font=self.font_type, 
                                     angle=90, text = texty, fill=self.fg_color,
@@ -1673,25 +1673,24 @@ class Plot:
     def __editor_load_selections(self):
 
         self.load_data_type = 'scatter'
-        self.load_data_type_button = Button(self.editor_canvas, width = 30, 
-                                height = 35, command=self.__change_plot_type, 
+        self.load_data_type_button = Button(self.editor_canvas, width = 25, 
+                                height = 25, command=self.__change_plot_type, 
                                 bg = self.bg_color, 
                                 image = self.button_image_data_scatter)
         self.load_data_type_button.place(x=450,y=74, anchor=NW)
 
         index = self.default_plot_color_counter
         self.load_data_color = self.default_plot_colors[index]
-        self.load_data_color_button = Button(self.editor_canvas, width = 3, 
-                                height = 2, command=self.__change_plot_color, 
-                                bg = self.load_data_color)
-        self.load_data_color_button.place(x=490,y=74, anchor=NW)
+        self.load_data_color_button = Button(self.editor_canvas, width = 25, 
+                                height = 25, command=self.__change_plot_color, 
+                                bg = self.load_data_color, image=self.button_image_color)
+        self.load_data_color_button.place(x=485,y=74, anchor=NW)
 
         self.load_data_legend = True
-        self.load_data_legend_button = Button(self.editor_canvas, width = 30, 
-                                height = 35, command=self.__change_plot_legend, 
-                                bg = self.highlight_colors[1], 
-                                image=self.button_image_legend)
-        self.load_data_legend_button.place(x=525, y=74, anchor=NW)
+        self.load_data_legend_button = Button(self.editor_canvas, width = 25, 
+                                height = 25, command=self.__change_plot_legend, 
+                                bg = self.bg_color, image=self.button_image_legend_on)
+        self.load_data_legend_button.place(x=520, y=74, anchor=NW)
 
     def __editor_best_fit(self):
         # Best Fit, not in use
@@ -1757,8 +1756,10 @@ class Plot:
         image_file = self.file_image_location + '\\line.png'
         self.button_image_data_line = ImageTk.PhotoImage(Image.open(image_file)) 
 
-        image_file = self.file_image_location + '\\legend.png'
-        self.button_image_legend = ImageTk.PhotoImage(Image.open(image_file)) 
+        image_file = self.file_image_location + '\\legend_on.png'
+        self.button_image_legend_on = ImageTk.PhotoImage(Image.open(image_file)) 
+        image_file = self.file_image_location + '\\legend_off.png'
+        self.button_image_legend_off = ImageTk.PhotoImage(Image.open(image_file)) 
 
         image_file = self.file_image_location + '\\lin.png'
         self.button_image_lin = ImageTk.PhotoImage(Image.open(image_file)) 
@@ -1771,6 +1772,8 @@ class Plot:
         self.button_image_item_selected = ImageTk.PhotoImage(Image.open(image_file)) 
         image_file = self.file_image_location + '\\item_deselect.png'
         self.button_image_item_desel = ImageTk.PhotoImage(Image.open(image_file)) 
+        image_file = self.file_image_location + '\\color.png'
+        self.button_image_color = ImageTk.PhotoImage(Image.open(image_file)) 
 
     def __update_editor_buttons(self, *args):
         for button in args:
@@ -1861,9 +1864,11 @@ class Plot:
 
     def __change_plot_legend(self):
         
-        color_index = 0 if self.load_data_legend == True else 1
-        self.load_data_legend = color_index
-        self.load_data_legend_button.config(bg=self.highlight_colors[color_index])
+        self.load_data_legend = False if self.load_data_legend else True
+        if self.load_data_legend:
+            self.load_data_legend_button.config(image=self.button_image_legend_on)
+        else:
+            self.load_data_legend_button.config(image=self.button_image_legend_off)
 
     def __switch_linlog(self, order):
         
