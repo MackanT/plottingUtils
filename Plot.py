@@ -344,6 +344,8 @@ class Plot:
             delta_y = ((event.y - self.plot_drag_mouse_pos[1]) 
                             * self.y_scale_factor)
             
+            if delta_x == 0 and delta_y == 0: return
+
             self.set_x_axis(self.x_boundary[0] + delta_x, 
                             self.x_boundary[-1] + delta_x, 'drag')
             self.set_y_axis(self.y_boundary[0] + delta_y, 
@@ -619,7 +621,7 @@ class Plot:
                     if np.max(points[0,:]) < max_x: max_x = np.max(points[0,:])
                     if np.min(points[1,:]) < min_y: min_y = np.min(points[1,:])
                     if np.max(points[1,:]) < max_y: max_y = np.max(points[1,:])
-        
+
         if min_x != max_x: delta_x = (max_x - min_x) / 10
         else: delta_x = 2
         if min_y != max_y: delta_y = (max_y - min_y) / 10
@@ -627,11 +629,18 @@ class Plot:
 
         # Used by log axis to auto set when changing lin/log
         for name in args:
-            if   name == 'axis_x': return [min_x - delta_x, max_x + delta_x]
-            elif name == 'axis_y': return [min_y - delta_y, max_y + delta_y]
+            if   name == 'axis_x': return [round(min_x - delta_x), round(max_x + delta_x)]
+            elif name == 'axis_y': return [round(min_y - delta_y), round(max_y + delta_y)]
 
-        self.set_x_axis(min_x - delta_x, max_x + delta_x, 'drag')
-        self.set_y_axis(min_y - delta_y, max_y + delta_y, 'drag')
+        if self.x_boundary and self.y_boundary:
+
+            same_x = self.x_boundary[0] == round(min_x - delta_x)
+            same_y = self.y_boundary[0] == round(min_y - delta_y)
+            if same_x and same_y: return
+
+
+        self.set_x_axis(round(min_x - delta_x), round(max_x + delta_x), 'drag')
+        self.set_y_axis(round(min_y - delta_y), round(max_y + delta_y), 'drag')
         self.update_plots('all')
 
     def set_labels(self, textx, texty):
