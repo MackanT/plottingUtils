@@ -7,6 +7,7 @@ class DataSeries:
         self.tag = tag
         self.line_width = 3
         self.scatter_width = 4
+        self.symbol = '\u25cf'
         self.color = '#5FBFF9'
         self.canvas = canvas
         self.plot_type = 'line'
@@ -30,6 +31,9 @@ class DataSeries:
     def get_legend(self):
         if self.has_legend: return self.legend_name
         else: return None
+
+    def set_symbol(self, symbol):
+        self.symbol = symbol
 
     def is_animated(self):
         return self.has_animation
@@ -76,8 +80,8 @@ class DataSeries:
                 drawPos += 1
 
     def __draw_dot(self, p1, p2, dot_size, use_color):
-        return self.canvas.create_oval(p1-dot_size,p2-dot_size,p1+dot_size,
-                                       p2+dot_size, width=0, fill=use_color)
+        return self.canvas.create_text(p1, p2, text = self.symbol, 
+                                       font='arial %d'%dot_size, fill=use_color)
 
     def __draw_line(self, p1, p2, p3, p4):
         return self.canvas.create_line(p1,p2,p3,p4, width=self.line_width, 
