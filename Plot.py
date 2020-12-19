@@ -598,22 +598,33 @@ class Plot:
         first_data_serie = True
         resize = True
 
+        all_values = True
+        for name in args:
+            if name == 'scale_x' or name == 'scale_y': 
+                all_values = False
+
         for item in self.data_series:
             if item.get_tag() != 'bFit': 
                 points = np.array(item.get_points())
 
+                x = points[0,:]
+                y = points[1,:]
+                if all_values == False:
+                    x = x[x >= 0]
+                    y = y[y >= 0]
+
                 if first_data_serie == True:
                     first_data_serie = False
 
-                    min_x = np.min(points[0,:])
-                    max_x = np.max(points[0,:])
-                    min_y = np.min(points[1,:])
-                    max_y = np.max(points[1,:])
+                    min_x = np.min(x)
+                    max_x = np.max(x)
+                    min_y = np.min(y)
+                    max_y = np.max(y)
                 else:
-                    if np.min(points[0,:]) < min_x: min_x = np.min(points[0,:])
-                    if np.max(points[0,:]) < max_x: max_x = np.max(points[0,:])
-                    if np.min(points[1,:]) < min_y: min_y = np.min(points[1,:])
-                    if np.max(points[1,:]) < max_y: max_y = np.max(points[1,:])
+                    if np.min(x) < min_x: min_x = np.min(x)
+                    if np.max(x) < max_x: max_x = np.max(x)
+                    if np.min(y) < min_y: min_y = np.min(y)
+                    if np.max(y) < max_y: max_y = np.max(y)
 
         if min_x != max_x: delta_x = (max_x - min_x) / 10
         else: delta_x = 2
@@ -625,6 +636,8 @@ class Plot:
             if   name == 'axis_x': return [round(min_x - delta_x), round(max_x + delta_x)]
             elif name == 'axis_y': return [round(min_y - delta_y), round(max_y + delta_y)]
             elif name == 'resize': resize = False
+            elif name == 'scale_x': return [min_x, max_x]
+            elif name == 'scale_y': return [min_y, max_y]
 
         if self.x_boundary and self.y_boundary and resize:
 
@@ -633,8 +646,8 @@ class Plot:
             if same_x and same_y: return
 
 
-        self.set_x_axis(round(min_x - delta_x), round(max_x + delta_x), 'drag')
-        self.set_y_axis(round(min_y - delta_y), round(max_y + delta_y), 'drag')
+        self.set_x_axis((min_x - delta_x), (max_x + delta_x), 'drag')
+        self.set_y_axis((min_y - delta_y), (max_y + delta_y), 'drag')
         self.update_plots('all')
 
     def set_labels(self, textx, texty):
@@ -678,7 +691,7 @@ class Plot:
     def set_x_axis(self, x_start, x_end, *args):
         """ Sets X-Axis, Args: Keep = keeps axis, Lock = locks axis, Log = Log Axis,
         Lin = Lin Axis, Show = show gridlines, Hidden = hide gridlines """
-
+        
         update_plot = True
         auto_focus = False
 
@@ -708,7 +721,7 @@ class Plot:
         
         num_ticks = self.axis_grid_lines[0]
         if num_ticks == 0: num_ticks = 1 
-
+        
         if auto_focus == True: x_start, x_end = self.auto_focus('axis_x')
         if x_start > x_end: x_start, x_end = x_end, x_start
         self.set_zero(x_start, x_end, 'x')   
@@ -721,7 +734,7 @@ class Plot:
                 self.x_boundary.append(x_start + i*valueSize)
             
         elif self.scale_type[0] == 'log':
-            if x_start <= 0: x_start, x_end = self.log_scale('axis_x')
+            if x_start <= 0: x_start, x_end = self.log_scale('scale_x')
             self.x_scale_factor = (x_end-x_start)/self.plot_dimensions[0]
             k = (x_start-x_end)/(math.log10(x_start)-math.log10(x_end))
             c = x_end - k * math.log10(x_end)
@@ -788,7 +801,7 @@ class Plot:
 
         elif self.scale_type[1] == 'log':
             
-            if y_start <= 0: y_start, y_end = self.log_scale('axis_y')
+            if y_start <= 0: y_start, y_end = self.log_scale('scale_y')
             self.y_scale_factor = (y_end-y_start)/self.plot_dimensions[1]
             k = (y_start-y_end)/(math.log10(y_start)-math.log10(y_end))
             c = y_end - k * math.log10(y_end)
@@ -845,12 +858,12 @@ class Plot:
         Called upon to estimate a good plot focus for log graphs
         Estimates by rounding data to nearest power of 10
         """
+    
         data_low, data_high = self.auto_focus(order)
-        power_low = round(math.log10(abs(data_low)))
-        power_high = round(math.log10(abs(data_high)))
+        power_low = math.floor(math.log10(data_low))
+        power_high = math.ceil(math.log10(data_high))
         
-        if   order == 'axis_x': return [10**(-power_low), 10**power_high]
-        elif order == 'axis_y': return [10**power_low, 10**power_high]
+        return [10**power_low, 10**power_high]
 
     def set_axis_scale_type(self, *args):
         """

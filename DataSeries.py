@@ -128,7 +128,7 @@ class DataSeries:
 
             p1 = self.scaled_points[0,i]
             p2 = self.scaled_points[1,i]
-            self.canvas.coords(int(self.plotted_items[i]), p1 - dot_size, p2 - dot_size, p1 + dot_size, p2 + dot_size)
+            self.canvas.coords(int(self.plotted_items[i]), p1, p2)
 
     def update_item(self, x, y, *args):
         self.scaled_points[0,:] = x
