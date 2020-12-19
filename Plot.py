@@ -959,11 +959,12 @@ class Plot:
 
     # Legend
 
-    def set_legend(self, pos):
+    def set_legend(self, pos=None):
+        """ Specify position with pos= NW, NE, SW, SE"""
 
         self.has_legend = True
-
-        if pos == 'NE': self.legend_pos = 'NE'
+        if   pos == None: self.legend_pos = 'NE'
+        elif pos == 'NE': self.legend_pos = 'NE'
         elif pos == 'NW': self.legend_pos = 'NW'
         elif pos == 'SE': self.legend_pos = 'SE'
         elif pos == 'SW': self.legend_pos = 'SW'
