@@ -17,6 +17,7 @@ class Plot:
         self.font_size = 10 if font_size == None else font_size
         self.offset_y = 40 + 4*self.font_size
         self.font = 'helvetica' if font_type == None else font_type
+        # self.font = tkFont.Font(family="Comic Sans MS", size=16, weight="bold", slant="italic")
         self.font_type = '%s %d' %(self.font, self.font_size)
         
         # Colors
@@ -1401,8 +1402,32 @@ class Plot:
                                     'load_data')
 
     def generate_plot_editor(self):
+        
+        self.__load_button_images()
 
-        # Title Edit
+        # Load Text Edit
+        self.__editor_title()
+        self.__editor_labels()
+        self.__editor_text()
+
+        # Load Axis Edit
+        self.__editor_x_axis()
+        self.__editor_y_axis()
+
+        # Functions
+        self.__editor_animation()
+        # self.__editor_best_fit()
+        
+        # Save and Load Data
+        self.__editor_save_data()
+        self.__editor_load_data()
+        self.__editor_load_selections()
+
+
+    ## Initializers
+
+    def __editor_title(self):
+
         self.editor_canvas.create_text(10, 10, anchor=W, text='Title')
         self.editor_canvas.create_line(10,16,200,16)
         self.title_input = Entry(self.editor_canvas, fg='gray')
@@ -1410,9 +1435,10 @@ class Plot:
         self.title_input.place(x=10,y=22, anchor=NW)
         self.__add_focus_listeners(self.title_input)
         self.title_input.bind("<Return>", lambda event: 
-                    self.set_title(self.title_input.get()))
+                              self.set_title(self.title_input.get()))
 
-        # X Axis Edit
+    def __editor_x_axis(self):
+        
         self.editor_canvas.create_text(10, 60, anchor=W, text='X Axis')
         self.editor_canvas.create_line(10,66,200,66)
         self.lower_x_scale = Entry(self.editor_canvas, fg='gray')
@@ -1505,7 +1531,8 @@ class Plot:
         self.y_label_input.bind("<Return>", lambda event: 
                             self.set_labels('keep', self.y_label_input.get()))
 
-        # Edit Texts
+    def __editor_text(self):
+        
         self.editor_canvas.create_text(230, 80, anchor=W, text='Text Editor')
         self.editor_canvas.create_line(230,86,420,86)
 
@@ -1519,7 +1546,8 @@ class Plot:
                         bg=self.bg_color, width = 8, command=self.__select_item)
         self.select_item_button.place(x= 360, y = 92)
 
-        # Animation
+    def __editor_animation(self):
+         
         self.editor_canvas.create_text(230, 130, anchor=W, text='Animation')
         self.editor_canvas.create_line(230,136,420,136)
 
@@ -1529,7 +1557,8 @@ class Plot:
         self.__add_focus_listeners(self.animation_speed_input)
         self.animation_speed_input.bind("<Return>", self.__set_animation_speed)
 
-        # Save Data
+    def __editor_save_data(self):
+        
         self.editor_canvas.create_text(450, 10, anchor=W, text='Save Data')
         self.editor_canvas.create_line(450,16,680,16)
 
@@ -1550,7 +1579,8 @@ class Plot:
         self.save_data_name_color = self.editor_canvas.create_oval(450, 36, 458, 44, state='hidden')
         self.save_data_name_selection = self.editor_canvas.create_text(465, 40, anchor=W, text='')
 
-        # Load Data
+    def __editor_load_data(self):
+        
         self.editor_canvas.create_text(450, 62, anchor=W, text='Load Data')
         self.editor_canvas.create_line(450,68,680,68)
 
@@ -1587,27 +1617,28 @@ class Plot:
                                 bg = self.load_data_color)
         self.load_data_color_button.place(x=490,y=74, anchor=NW)
 
-        image_file = self.file_image_location + '\\legend.png'
         self.load_data_legend = True
-        self.button_image_legend = ImageTk.PhotoImage(Image.open(image_file)) 
         self.load_data_legend_button = Button(self.editor_canvas, width = 30, 
                                 height = 35, command=self.__change_plot_legend, 
-                                bg = self.highlight_colors[1], image=self.button_image_legend)
+                                bg = self.highlight_colors[1], 
+                                image=self.button_image_legend)
         self.load_data_legend_button.place(x=525, y=74, anchor=NW)
-        
 
+    def __editor_best_fit(self):
         # Best Fit, not in use
-        # self.bestFitButton = Button(self.editor_canvas, text='Best Fit', command=self.__bestFit)
-        # self.bestFitButton.place(x= 450, y = 10)
-        # self.edit_buttons = []
-        # self.edit_buttons.append(Scale(self.editor_canvas, from_=0, to=10, 
-        #                         resolution=0.01, command=self.__changeA))
-        # self.edit_buttons.append(Scale(self.editor_canvas, from_=0, to=10, 
-        #                         resolution=0.01, command=self.__changeB))
-        # self.edit_buttons.append(Scale(self.editor_canvas, from_=0, to=100, 
-        #                         resolution=0.01, command=self.__changeC))
-        # for i in range(len(self.edit_buttons)):
-        #     self.edit_buttons[i].place(x = (i+2)*120 + 300, y =30)
+        self.bestFitButton = Button(self.editor_canvas, text='Best Fit', command=self.__bestFit)
+        self.bestFitButton.place(x= 450, y = 10)
+        self.edit_buttons = []
+        self.edit_buttons.append(Scale(self.editor_canvas, from_=0, to=10, 
+                                resolution=0.01, command=self.__changeA))
+        self.edit_buttons.append(Scale(self.editor_canvas, from_=0, to=10, 
+                                resolution=0.01, command=self.__changeB))
+        self.edit_buttons.append(Scale(self.editor_canvas, from_=0, to=100, 
+                                resolution=0.01, command=self.__changeC))
+        for i in range(len(self.edit_buttons)):
+            self.edit_buttons[i].place(x = (i+2)*120 + 300, y =30)
+
+    ## Listeners
 
     def __add_focus_listeners(self, item):
         item.bind("<FocusIn>", self.__handle_focus_in)
@@ -1637,32 +1668,61 @@ class Plot:
                                         item.insert(0, 'Animation Speed') 
         else: item.insert(0, 'Failure') 
 
+
+    ## Updaters
+
+    def __load_button_images(self):
+
+        image_file = self.file_image_location + '\\setting_on.png'
+        self.button_image_on = ImageTk.PhotoImage(Image.open(image_file)) 
+        image_file = self.file_image_location + '\\setting_off.png'
+        self.button_image_off = ImageTk.PhotoImage(Image.open(image_file)) 
+
+        image_file = self.file_image_location + '\\save.png'
+        self.button_image_save_data = ImageTk.PhotoImage(Image.open(image_file))
+        image_file = self.file_image_location + '\\load.png'
+        self.button_image_load_data = ImageTk.PhotoImage(Image.open(image_file)) 
+
+        image_file = self.file_image_location + '\\scatter.png'
+        self.button_image_data_scatter = ImageTk.PhotoImage(Image.open(image_file)) 
+        image_file = self.file_image_location + '\\line.png'
+        self.button_image_data_line = ImageTk.PhotoImage(Image.open(image_file)) 
+
+        image_file = self.file_image_location + '\\legend.png'
+        self.button_image_legend = ImageTk.PhotoImage(Image.open(image_file)) 
+
+        image_file = self.file_image_location + '\\lin.png'
+        self.button_image_lin = ImageTk.PhotoImage(Image.open(image_file)) 
+        image_file = self.file_image_location + '\\log.png'
+        self.button_image_log = ImageTk.PhotoImage(Image.open(image_file)) 
+
     def __update_editor_buttons(self, *args):
         for button in args:
             if button == 'x_grid':
-                x_grid_color = self.highlight_colors[1] if self.has_x_grid == True else self.highlight_colors[0]
-                self.x_grid_button.config(bg=x_grid_color)
+                if self.has_x_grid:
+                    self.x_grid_button.config(image = self.button_image_on)
+                else:
+                    self.x_grid_button.config(image = self.button_image_off)
                 if self.scale_type[0] == 'log': self.x_scale_steps.config(state='disabled')
                 elif self.scale_type[0] == 'lin': self.x_scale_steps.config(state='normal')
             elif button == 'y_grid':
-                y_grid_color = self.highlight_colors[1] if self.has_y_grid == True else self.highlight_colors[0]
-                self.y_grid_button.config(bg=y_grid_color)
+                if self.has_y_grid: 
+                    self.y_grid_button.config(image=self.button_image_on)
+                else: 
+                    self.y_grid_button.config(image=self.button_image_off)
                 if self.scale_type[1] == 'log': self.y_scale_steps.config(state='disabled')
                 elif self.scale_type[1] == 'lin': self.y_scale_steps.config(state='normal')
             elif button == 'x_linlog':              
                 if self.scale_type[0] == 'lin':
-                    image_file = self.file_image_location + '\\lin.png'
+                    self.x_linlog_button.config(image=self.button_image_lin)
                 elif self.scale_type[0] == 'log':
-                    image_file = self.file_image_location + '\\log.png'
-                self.button_image_linlog_x = ImageTk.PhotoImage(Image.open(image_file)) 
-                self.x_linlog_button.config(image=self.button_image_linlog_x)
+                    self.x_linlog_button.config(image=self.button_image_log)
             elif button == 'y_linlog': 
                 if self.scale_type[1] == 'lin':
-                    image_file = self.file_image_location + '\\lin.png'
+                    self.y_linlog_button.config(image=self.button_image_lin)    
                 elif self.scale_type[1] == 'log':
-                    image_file = self.file_image_location + '\\log.png'
-                self.button_image_linlog_y = ImageTk.PhotoImage(Image.open(image_file)) 
-                self.y_linlog_button.config(image=self.button_image_linlog_y)
+                     self.y_linlog_button.config(image=self.button_image_log)    
+                
             elif button == 'sel_item': 
                 if self.plot_editor_selected_counter == 0: 
                     selText = 'Select Item'
@@ -1792,6 +1852,8 @@ class Plot:
         for i in range(len(self.plotted_items)):
             for item in self.plotted_items[i]:
                 self.plot.tag_raise(item)  
+
+    ## Item Change
 
     def __bestFit(self):
         if not self.lineApproximations:
