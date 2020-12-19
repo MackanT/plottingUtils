@@ -250,7 +250,7 @@ class Plot:
                          height = self.plot_dimensions[1] * height_delta)
         self.plot.place(x = self.offset_x, y = self.offset_y)
         
-        self.auto_focus('resize')
+        self.auto_focus()
 
         if self.has_colorbar:
             self.color_bar.config(height = self.plot_dimensions[1])
@@ -615,54 +615,39 @@ class Plot:
 
     # Axis
 
-    def auto_focus(self, *args):
+    def auto_focus(self, source=None, *args):
         """ Estimates a good x and y scale for the plotted data by 
         finding the min/max x/y for all data """
 
-        first_data_serie = True
-        resize = True
+        all_values = False if source == 'scale_x' or 'scale_y' else True
+        for i in range(1, len(self.data_series)):
+            
+            points = np.array(self.data_series[i].get_points())
+            x, y = points[0,:], points[1,:]
+            if all_values == False: x, y = x[x >= 0], y[y >= 0]
 
-        all_values = True
-        for name in args:
-            if name == 'scale_x' or 'scale_y': 
-                all_values = False
-
-        for item in self.data_series:
-            if item.get_tag() != 'bFit': 
-                points = np.array(item.get_points())
-
-                x = points[0,:]
-                y = points[1,:]
-                if all_values == False:
-                    x = x[x >= 0]
-                    y = y[y >= 0]
-
-                if first_data_serie == True:
-                    first_data_serie = False
-
-                    min_x = np.min(x)
-                    max_x = np.max(x)
-                    min_y = np.min(y)
-                    max_y = np.max(y)
-                else:
-                    if np.min(x) < min_x: min_x = np.min(x)
-                    if np.max(x) < max_x: max_x = np.max(x)
-                    if np.min(y) < min_y: min_y = np.min(y)
-                    if np.max(y) < max_y: max_y = np.max(y)
+            if i == 1:
+                min_x, max_x = np.min(x), np.max(x)
+                min_y, max_y = np.min(y), np.max(y)
+            else:
+                if np.min(x) < min_x: min_x = np.min(x)
+                if np.max(x) > max_x: max_x = np.max(x)
+                if np.min(y) < min_y: min_y = np.min(y)
+                if np.max(y) > max_y: max_y = np.max(y)
 
         # To avoid div by 0, if min_x = max_x etc.
         delta_x = (max_x - min_x) / 10 if min_x != max_x else 2
         delta_y = (max_y - min_y) / 10 if min_y != max_y else 2
 
-        # Used by log axis to auto set when changing lin/log
-        for name in args:
-            if   name == 'axis_x': return [round(min_x - delta_x), round(max_x + delta_x)]
-            elif name == 'axis_y': return [round(min_y - delta_y), round(max_y + delta_y)]
-            elif name == 'scale_x': return [min_x, max_x]
-            elif name == 'scale_y': return [min_y, max_y]
-            elif name == 'resize': resize = False
+        # Graph auto-set
+        if source == 'axis_x': return [round(min_x - delta_x), round(max_x + delta_x)]
+        if source == 'axis_y': return [round(min_y - delta_y), round(max_y + delta_y)]
 
-        if self.x_boundary and self.y_boundary and resize:
+        # Used by log axis to auto set when changing lin/log            
+        if source == 'scale_x': return [min_x, max_x]
+        if source == 'scale_y': return [min_y, max_y]
+
+        if self.x_boundary and self.y_boundary:
             same_x = self.x_boundary[0] == round(min_x - delta_x)
             same_y = self.y_boundary[0] == round(min_y - delta_y)
             if same_x and same_y: return
@@ -740,7 +725,6 @@ class Plot:
         num_ticks = self.axis_grid_lines[0]
         if num_ticks == 0: num_ticks = 1 
         
-        if auto_focus == True: x_start, x_end = self.auto_focus('axis_x')
         if x_start > x_end: x_start, x_end = x_end, x_start
         self.set_zero(x_start, x_end, 'x')   
         
@@ -752,7 +736,7 @@ class Plot:
                 self.x_boundary.append(x_start + i*valueSize)
             
         elif self.scale_type[0] == 'log':
-            if x_start <= 0: x_start, x_end = self.log_scale('scale_x')
+            if x_start <= 0: x_start, x_end = self.log_scale(source='scale_x')
             self.x_scale_factor = (x_end-x_start)/self.plot_dimensions[0]
             k = (x_start-x_end)/(math.log10(x_start)-math.log10(x_end))
             c = x_end - k * math.log10(x_end)
@@ -801,7 +785,7 @@ class Plot:
         num_ticks = self.axis_grid_lines[1]
         if num_ticks == 0: num_ticks = 1 
 
-        if auto_focus == True: y_start, y_end = self.auto_focus('axis_y')
+        if auto_focus == True: y_start, y_end = self.auto_focus(source='axis_y')
         if y_start > y_end: y_start, y_end = y_end, y_start
         self.set_zero(y_start, y_end, 'y')   
 
@@ -816,7 +800,7 @@ class Plot:
 
         elif self.scale_type[1] == 'log':
             
-            if y_start <= 0: y_start, y_end = self.log_scale('scale_y')
+            if y_start <= 0: y_start, y_end = self.log_scale(source='scale_y')
             self.y_scale_factor = (y_end-y_start)/self.plot_dimensions[1]
             k = (y_start-y_end)/(math.log10(y_start)-math.log10(y_end))
             c = y_end - k * math.log10(y_end)
@@ -874,7 +858,7 @@ class Plot:
         Estimates by rounding data to nearest power of 10
         """
     
-        data_low, data_high = self.auto_focus(order)
+        data_low, data_high = self.auto_focus(source=order)
         power_low = math.floor(math.log10(data_low))
         power_high = math.ceil(math.log10(data_high))
         
