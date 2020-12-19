@@ -1461,23 +1461,19 @@ class Plot:
         self.__add_focus_listeners(self.x_scale_steps)
         self.x_scale_steps.bind("<Return>", lambda event: 
                                 self.set_grid_lines('x', self.x_scale_steps.get()))
-        
-        image_file = self.file_image_location + '\\on.png'
-        self.button_image_on = ImageTk.PhotoImage(Image.open(image_file)) 
+
         self.x_grid_button = Button(self.editor_canvas, width=25, height=25, 
                     command=lambda: self.__enable_grid('x'), 
-                    bg=self.highlight_colors[1], image=self.button_image_on)
+                    bg=self.bg_color, image=self.button_image_on)
         self.x_grid_button.place(x=145,y=70, anchor=NW)
 
-        image_file = self.file_image_location + '\\lin.png'
-        self.button_image_linlog_x = ImageTk.PhotoImage(Image.open(image_file)) 
         self.x_linlog_button = Button(self.editor_canvas, width=25, height=25, 
                     command=lambda: self.__switch_linlog('x'), bg=self.bg_color, 
-                    image=self.button_image_linlog_x)
+                    image=self.button_image_lin)
         self.x_linlog_button.place(x=145,y=105, anchor=NW)
 
-
-        # Y Axis Edit
+    def __editor_y_axis(self):
+        
         self.editor_canvas.create_text(10, 150, anchor=W, text='Y Axis')
         self.editor_canvas.create_line(10,156,200,156)
         self.lower_y_scale = Entry(self.editor_canvas, fg='gray')
@@ -1503,17 +1499,16 @@ class Plot:
 
         self.y_grid_button = Button(self.editor_canvas, width=25, height=25, 
                     command=lambda: self.__enable_grid('y'), 
-                    bg=self.highlight_colors[1], image=self.button_image_on)
+                    bg=self.bg_color, image=self.button_image_on)
         self.y_grid_button.place(x=145,y=160, anchor=NW)
         
-        image_file = self.file_image_location + '\\lin.png'
-        self.button_image_linlog_y = ImageTk.PhotoImage(Image.open(image_file)) 
         self.y_linlog_button = Button(self.editor_canvas, width=25, height=25, 
                     command=lambda: self.__switch_linlog('y'), bg=self.bg_color, 
-                    image=self.button_image_linlog_y)
+                    image=self.button_image_lin)
         self.y_linlog_button.place(x=145,y=195, anchor=NW)
 
-        # Labels
+    def __editor_labels(self):
+        
         self.editor_canvas.create_text(230, 10, anchor=W, text='Labels')
         self.editor_canvas.create_line(230,16,420,16)
 
@@ -1568,9 +1563,7 @@ class Plot:
                                             self.om_save_variable, '')
         self.save_data_tag_selector.config(bg=self.bg_color, width=1, font='bold')                                            
         self.save_data_tag_selector.place(x=580, y=22)
-
-        image_file = self.file_image_location + '\\save.png'
-        self.button_image_save_data = ImageTk.PhotoImage(Image.open(image_file)) 
+ 
         self.save_data_button = Button(self.editor_canvas, width=30, height=35, 
                                 command=lambda: self.save_data(self.om_save_variable.get()), 
                                 bg=self.bg_color, image=self.button_image_save_data)
@@ -1591,23 +1584,21 @@ class Plot:
         self.load_data_tag_selector.config(bg=self.bg_color, width=1, font='bold')                                            
         self.load_data_tag_selector.place(x=580, y=74)
 
-        image_file = self.file_image_location + '\\load.png'
-        self.button_image_load_data = ImageTk.PhotoImage(Image.open(image_file)) 
         self.load_data_button = Button(self.editor_canvas, width=30, height=35, 
                                 command=lambda:self.load_data(), 
                                 bg=self.bg_color, image=self.button_image_load_data)
         self.load_data_button.place(x=640,y=74, width=40, anchor=NW)
 
-        self.load_data_name_selection = self.editor_canvas.create_text(465, 128, anchor=W, text='')
+        self.load_data_name_selection = self.editor_canvas.create_text(465, 
+                                                        128, anchor=W, text='')
 
-        # Load Selections
+    def __editor_load_selections(self):
 
-        image_file = self.file_image_location + '\\scatter.png'
         self.load_data_type = 'scatter'
-        self.button_image_data_type = ImageTk.PhotoImage(Image.open(image_file)) 
         self.load_data_type_button = Button(self.editor_canvas, width = 30, 
                                 height = 35, command=self.__change_plot_type, 
-                                bg = self.bg_color, image = self.button_image_data_type)
+                                bg = self.bg_color, 
+                                image = self.button_image_data_scatter)
         self.load_data_type_button.place(x=450,y=74, anchor=NW)
 
         index = self.default_plot_color_counter
@@ -1774,13 +1765,13 @@ class Plot:
 
     def __change_plot_type(self):
 
-        data_type = 'scatter' if self.load_data_type == 'line' else 'line'
-
-        self.load_data_type = data_type
-        scatter_file = self.file_image_location + '\\' + data_type + '.png'
-        self.button_image_data_type = ImageTk.PhotoImage(Image.open(scatter_file)) 
-        self.load_data_type_button.config(image = self.button_image_data_type)
-
+        if self.load_data_type == 'line':
+            self.load_data_type_button.config(image = self.button_image_data_scatter)
+            self.load_data_type = 'scatter'
+        else:
+            self.load_data_type_button.config(image = self.button_image_data_line)
+            self.load_data_type = 'line'
+        
     def __change_plot_color(self):
         
         index = self.default_plot_color_counter
