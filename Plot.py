@@ -316,25 +316,46 @@ class Plot:
             if self.plot_editor_selected_counter != 1:
 
                 self.plot_drag_mouse_clicked = True
-                self.plot_drag_mouse_pos = [event.x, event.y]
+                
+                if self.scale_type[0] == 'lin': x_val = event.x
+                else: x_val = self.anti_scale_vector(event.x, 'x')
+                
+                if self.scale_type[1] == 'lin': y_val = event.y
+                else: y_val = self.anti_scale_vector(event.y, 'y')
+                
+                self.plot_drag_mouse_pos = [x_val, y_val]
 
     def mouse_dragged(self, event):
         """ Allows for real time moving of the graphed data """
 
         if self.plot_drag_mouse_clicked == True:
 
-            delta_x = self.plot_drag_mouse_pos[0] - event.x
-            delta_y = event.y - self.plot_drag_mouse_pos[1]
+            if self.scale_type[0] == 'lin':
+                delta_x = self.plot_drag_mouse_pos[0] - event.x
+                delta_x *= self.x_scale_factor
+                x_min = self.x_boundary[0] + delta_x
+                x_max = self.x_boundary[-1] + delta_x
+                self.plot_drag_mouse_pos[0] = event.x
+            elif self.scale_type[0] == 'log':
 
-            self.plot_drag_mouse_pos = [event.x, event.y]
+                delta_x = self.plot_drag_mouse_pos[0] - self.anti_scale_vector(event.x, 'x')
+                x_min = self.x_boundary[0] + delta_x
+                x_max = self.x_boundary[-1] + delta_x
+                
+            if self.scale_type[1] == 'lin':
+                delta_y = event.y - self.plot_drag_mouse_pos[1]
+                delta_y *= self.y_scale_factor
+                y_min = self.y_boundary[0] + delta_y
+                y_max = self.y_boundary[-1] + delta_y
+                self.plot_drag_mouse_pos[1] = event.y
+            elif self.scale_type[1] == 'log':
 
-            x_shift = (self.x_boundary[-1] - self.x_boundary[0]) / self.plot_dimensions[0]
-            y_shift = (self.y_boundary[-1] - self.y_boundary[0]) / self.plot_dimensions[1]
+                delta_y = self.plot_drag_mouse_pos[1] - self.anti_scale_vector(event.y, 'y')
+                y_min = self.y_boundary[0] + delta_y
+                y_max = self.y_boundary[-1] + delta_y
 
-            self.set_x_axis(self.x_boundary[0] + delta_x*x_shift, 
-                            self.x_boundary[-1] + delta_x*x_shift, 'drag')
-            self.set_y_axis(self.y_boundary[0] + delta_y*y_shift, 
-                            self.y_boundary[-1] + delta_y*y_shift, 'drag')
+            self.set_x_axis(x_min, x_max, 'drag')
+            self.set_y_axis(y_min, y_max, 'drag')
 
             self.update_plots('all')
 
@@ -600,7 +621,7 @@ class Plot:
 
         all_values = True
         for name in args:
-            if name == 'scale_x' or name == 'scale_y': 
+            if name == 'scale_x' or 'scale_y': 
                 all_values = False
 
         for item in self.data_series:
@@ -626,25 +647,22 @@ class Plot:
                     if np.min(y) < min_y: min_y = np.min(y)
                     if np.max(y) < max_y: max_y = np.max(y)
 
-        if min_x != max_x: delta_x = (max_x - min_x) / 10
-        else: delta_x = 2
-        if min_y != max_y: delta_y = (max_y - min_y) / 10
-        else: delta_y = 2
+        # To avoid div by 0, if min_x = max_x etc.
+        delta_x = (max_x - min_x) / 10 if min_x != max_x else 2
+        delta_y = (max_y - min_y) / 10 if min_y != max_y else 2
 
         # Used by log axis to auto set when changing lin/log
         for name in args:
             if   name == 'axis_x': return [round(min_x - delta_x), round(max_x + delta_x)]
             elif name == 'axis_y': return [round(min_y - delta_y), round(max_y + delta_y)]
-            elif name == 'resize': resize = False
             elif name == 'scale_x': return [min_x, max_x]
             elif name == 'scale_y': return [min_y, max_y]
+            elif name == 'resize': resize = False
 
         if self.x_boundary and self.y_boundary and resize:
-
             same_x = self.x_boundary[0] == round(min_x - delta_x)
             same_y = self.y_boundary[0] == round(min_y - delta_y)
             if same_x and same_y: return
-
 
         self.set_x_axis((min_x - delta_x), (max_x + delta_x), 'drag')
         self.set_y_axis((min_y - delta_y), (max_y + delta_y), 'drag')
@@ -1086,13 +1104,13 @@ class Plot:
         for name in args:
             if name == 'x':
                 if self.scale_type[0] == 'log': 
-                    return 10**((data * self.x_scale_factor 
+                    return 10**((data*self.x_scale_factor 
                                 - self.x_log_scale[1]) / self.x_log_scale[0])
                 elif self.scale_type[0] == 'lin':
                     return (data-self.x0) * self.x_scale_factor
             elif name == 'y':
                 if self.scale_type[1] == 'log':
-                    return 10**((data * self.y_scale_factor 
+                    return 10**(((-data + self.plot_dimensions[1])*self.y_scale_factor 
                                 - self.y_log_scale[1]) / self.y_log_scale[0])
                 elif self.scale_type[1] == 'lin':
                     return (self.y0 - data) * self.y_scale_factor
