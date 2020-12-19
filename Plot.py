@@ -33,9 +33,7 @@ class Plot:
 
         # Enabled Parameters
         self.has_title = False
-        self.lock_x_axis = False
         self.has_x_grid = False
-        self.lock_y_axis = False
         self.has_y_grid = False
         self.has_x_label = False
         self.has_y_label = False
@@ -708,19 +706,17 @@ class Plot:
             else: self.y0 = abs_term * plot_dim
 
     def set_x_axis(self, x_start, x_end, *args):
-        """ Sets X-Axis, Args: Keep = keeps axis, Lock = locks axis, Log = Log Axis,
+        """ Sets X-Axis, Args: Keep = keeps axis, Log = Log Axis,
         Lin = Lin Axis, Show = show gridlines, Hidden = hide gridlines """
         
         update_plot = True
-        auto_focus = False
 
         if x_start == 'keep': x_start = self.x_boundary[0]
         if x_end == 'keep': x_end = self.x_boundary[-1]
 
         for name in args:
             if name == 'graph':
-                auto_focus = True
-                if self.lock_x_axis: return
+                x_start, x_end = self.auto_focus(source='axis_x')
                 if self.x_boundary:
                     cond1 = x_start > self.x_boundary[0]
                     cond2 = x_end < self.x_boundary[-1]
@@ -730,7 +726,6 @@ class Plot:
                             x_start = self.x_boundary[0]
                         if x_end < self.x_boundary[-1]: 
                             x_end = self.x_boundary[-1]
-            elif name == 'lock': self.lock_x_axis = True
             elif name == 'log': self.scale_type[0] = 'log'
             elif name == 'lin': self.scale_type[0] = 'lin'
             elif name == 'show': self.has_x_grid = True
@@ -784,7 +779,6 @@ class Plot:
         for name in args:
             if name == 'graph':
                 auto_focus = True
-                if self.lock_y_axis == True: return
                 if self.y_boundary:
                     cond1 = y_start > self.y_boundary[0]
                     cond2 = y_end < self.y_boundary[-1]
@@ -794,7 +788,6 @@ class Plot:
                             y_start = self.y_boundary[0]
                         if y_end < self.y_boundary[-1]: 
                             y_end = self.y_boundary[-1]
-            elif name == 'lock': self.lock_y_axis = True
             elif name == 'log': self.scale_type[1] = 'log'
             elif name == 'lin': self.scale_type[1] = 'lin'
             elif name == 'show': self.has_y_grid = True
