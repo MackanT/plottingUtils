@@ -81,7 +81,8 @@ class Plot:
         self.root_window.bind('<Left>', self.left_arrow_key_command)
         self.root_window.bind('<Up>', self.up_arrow_key_command)
         self.root_window.bind('<Down>', self.down_arrow_key_command)
-        self.root_window.bind('<Delete>', self.delete_arrow_key_command)
+        self.root_window.bind('<Delete>', self.delete_key_command)
+        self.root_window.bind('<Escape>', self.escape_key_command)
 
         # Save Locations
         self.file_save_location = os.path.dirname(os.path.realpath(__file__)) \
@@ -1049,6 +1050,31 @@ class Plot:
         for i in range(len(names)):
             self.plot.itemconfig(self.legend_content[i], text=names[i])
 
+    def find_legend(self, content):
+        """ Returns index of legend item, Content = widget to search"""
+        text = self.plot.itemcget(content, 'text')
+        for i in range(len(self.legend_content)):
+            if self.plot.itemcget(self.legend_content[i], 'text') == text:
+                return i    
+
+    def switch_legend_index(self, index, order):
+        item_change = self.plot.coords(self.legend_content[index])[1]
+        marker_change = self.plot.coords(self.legend_markers[index])[1]
+        item_move = self.plot.coords(self.legend_content[index+order])[1]
+        marker_move = self.plot.coords(self.legend_markers[index+order])[1]
+
+        item_delta = (item_change - item_move)
+        marker_delta = (marker_change - marker_move)
+
+        self.plot.move(self.legend_content[index], 0, -item_delta)
+        self.plot.move(self.legend_content[index+order], 0, item_delta)
+
+        self.plot.move(self.legend_markers[index], 0, -marker_delta)
+        self.plot.move(self.legend_markers[index+order], 0, marker_delta)
+        
+        self.legend_content[index], self.legend_content[index+order] = self.legend_content[index+order], self.legend_content[index]
+        self.legend_markers[index], self.legend_markers[index+order] = self.legend_markers[index+order], self.legend_markers[index]
+
     # Data validation for plotted objects
 
     def scale_vector(self, data, *args):
@@ -1268,20 +1294,29 @@ class Plot:
     def up_arrow_key_command(self, event):
         if self.plot_editor_selected_item != None:
             txt_index = self.find_text(self.plot_editor_selected_item)
-            if txt_index == None: return
-            y_scale = (self.y_boundary[-1]-self.y_boundary[0])/100
-            self.plotted_text_position[txt_index][1] += y_scale
-            self.update_text_pos(txt_index)
+            if txt_index != None: 
+                y_scale = (self.y_boundary[-1]-self.y_boundary[0])/100
+                self.plotted_text_position[txt_index][1] += y_scale
+                self.update_text_pos(txt_index)
+
+            legend_index = self.find_legend(self.plot_editor_selected_item)
+            if legend_index != None and legend_index > 0:
+                self.switch_legend_index(legend_index, -1)
     
     def down_arrow_key_command(self, event):
         if self.plot_editor_selected_item != None:
             txt_index = self.find_text(self.plot_editor_selected_item)
-            if txt_index == None: return
-            y_scale = (self.y_boundary[-1]-self.y_boundary[0])/100
-            self.plotted_text_position[txt_index][1] -= y_scale
-            self.update_text_pos(txt_index)
-
-    def delete_arrow_key_command(self, event):
+            if txt_index != None:
+                y_scale = (self.y_boundary[-1]-self.y_boundary[0])/100
+                self.plotted_text_position[txt_index][1] -= y_scale
+                self.update_text_pos(txt_index)
+                return
+            
+            legend_index = self.find_legend(self.plot_editor_selected_item)
+            if legend_index != None and legend_index+1 < len(self.legend_content):
+                self.switch_legend_index(legend_index, 1)
+                
+    def delete_key_command(self, event):
         if self.plot_editor_selected_item != None:
             txt_index = self.find_text(self.plot_editor_selected_item)
             if txt_index == None: return
@@ -1291,6 +1326,10 @@ class Plot:
             self.plotted_text_position.pop(txt_index)
             self.__select_item()
 
+    def escape_key_command(self, event):
+        if self.plot_editor_selected_item != None:
+            self.__select_item()
+            
     # Markers
 
     def set_markerbar(self, size_array, tag):
