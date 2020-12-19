@@ -1,4 +1,5 @@
 from tkinter import *
+# import tkinter.font as tkFont
 from PIL import ImageTk,Image
 from DataSeries import DataSeries
 import math
@@ -246,7 +247,7 @@ class Plot:
                          height = self.plot_dimensions[1] * height_delta)
         self.plot.place(x = self.offset_x, y = self.offset_y)
         
-        self.auto_focus()
+        self.auto_focus('resize')
 
         if self.has_colorbar:
             self.color_bar.config(height = self.plot_dimensions[1])
@@ -313,6 +314,7 @@ class Plot:
 
         else:
             if self.plot_editor_selected_counter != 1:
+
                 self.plot_drag_mouse_clicked = True
                 self.plot_drag_mouse_pos = [event.x, event.y]
 
@@ -320,17 +322,21 @@ class Plot:
         """ Allows for real time moving of the graphed data """
 
         if self.plot_drag_mouse_clicked == True:
-            delta_x = ((self.plot_drag_mouse_pos[0] - event.x) 
-                            * self.x_scale_factor)
-            delta_y = ((event.y - self.plot_drag_mouse_pos[1]) 
-                            * self.y_scale_factor)
 
-            self.set_x_axis(self.x_boundary[0] + delta_x, 
-                            self.x_boundary[-1] + delta_x)
-            self.set_y_axis(self.y_boundary[0] + delta_y, 
-                            self.y_boundary[-1] + delta_y)
+            delta_x = self.plot_drag_mouse_pos[0] - event.x
+            delta_y = event.y - self.plot_drag_mouse_pos[1]
 
             self.plot_drag_mouse_pos = [event.x, event.y]
+
+            x_shift = (self.x_boundary[-1] - self.x_boundary[0]) / self.plot_dimensions[0]
+            y_shift = (self.y_boundary[-1] - self.y_boundary[0]) / self.plot_dimensions[1]
+
+            self.set_x_axis(self.x_boundary[0] + delta_x*x_shift, 
+                            self.x_boundary[-1] + delta_x*x_shift, 'drag')
+            self.set_y_axis(self.y_boundary[0] + delta_y*y_shift, 
+                            self.y_boundary[-1] + delta_y*y_shift, 'drag')
+
+            self.update_plots('all')
 
     def mouse_released(self, event):
         """
@@ -339,21 +345,6 @@ class Plot:
 
         if self.plot_drag_mouse_clicked == True:
             self.plot_drag_mouse_clicked = False
-
-            delta_x = ((self.plot_drag_mouse_pos[0] - event.x) 
-                            * self.x_scale_factor)
-            delta_y = ((event.y - self.plot_drag_mouse_pos[1]) 
-                            * self.y_scale_factor)
-            
-            if delta_x == 0 and delta_y == 0: return
-
-            self.set_x_axis(self.x_boundary[0] + delta_x, 
-                            self.x_boundary[-1] + delta_x, 'drag')
-            self.set_y_axis(self.y_boundary[0] + delta_y, 
-                            self.y_boundary[-1] + delta_y, 'drag')
-
-            self.update_plots('all')
-            self.raise_items()
 
     def mouse_scrolled(self, event):
         """
@@ -603,8 +594,9 @@ class Plot:
     def auto_focus(self, *args):
         """ Estimates a good x and y scale for the plotted data by 
         finding the min/max x/y for all data """
-        
+
         first_data_serie = True
+        resize = True
 
         for item in self.data_series:
             if item.get_tag() != 'bFit': 
@@ -632,8 +624,9 @@ class Plot:
         for name in args:
             if   name == 'axis_x': return [round(min_x - delta_x), round(max_x + delta_x)]
             elif name == 'axis_y': return [round(min_y - delta_y), round(max_y + delta_y)]
+            elif name == 'resize': resize = False
 
-        if self.x_boundary and self.y_boundary:
+        if self.x_boundary and self.y_boundary and resize:
 
             same_x = self.x_boundary[0] == round(min_x - delta_x)
             same_y = self.y_boundary[0] == round(min_y - delta_y)
