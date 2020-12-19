@@ -927,14 +927,18 @@ class Plot:
         if order == 'x':
             self.has_x_grid = True
             self.__grid_x(num_ticks)
+            self.set_axis_numbers(num_ticks,'x')
         elif order == 'y':
             self.has_y_grid = True
             self.__grid_y(num_ticks)
+            self.set_axis_numbers(num_ticks,'y')
         elif order == 'xy':
             self.has_x_grid = True
             self.has_y_grid = True
             self.__grid_x(num_ticks)
             self.__grid_y(num_ticks)
+            self.set_axis_numbers(num_ticks,'x')
+            self.set_axis_numbers(num_ticks,'y')
         
         self.raise_items()
 
