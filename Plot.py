@@ -1126,46 +1126,45 @@ class Plot:
 
     # Plot Data
 
-    def graph(self, x, y, tag, *args, legend=None, marker=None):
+    def graph(self, x, y, tag, style=None, scale=None, grid=None, legend=None, 
+             animate=None, symbol=None):
         """
-        Args: legend=, line, scatter, animate, log, show
+        Main 2D plot. 
+        Style: scatter,
+        Scale: log,
+        grid: on,
+        legend: 'name',
+        animate: on,
+        symbol: +, x, dot, circle,
         """
         self.has_graph = True
         dataset = self.find_dataset(tag, forced='new')
 
         # Plotting Parameters
         plot_range = range(np.size(x))
-        plot_type = 'line'
-        grid_state = False
-        for name in args:
-            if name == 'scatter': plot_type = 'scatter'
-            elif name == 'animate':
-                self.enable_animator(len(x)-1)
-                self.animation_tags.append(tag)
-                dataset.set_animation(True)
-                plot_range = 0
-            elif name == 'log': 
-                self.scale_type[0] = 'log'
-                self.scale_type[1] = 'log'
-            elif name == 'show': grid_state = True
-        
+        if grid == 'on': self.has_x_grid = self.has_y_grid = True
+        if scale == 'log': self.scale_type = ['log', 'log']
+        if style == 'scatter': dataset.set_plot_type('scatter')
+        if animate == 'on': 
+            self.enable_animator(len(x)-1)
+            self.animation_tags.append(tag)
+            dataset.set_animation(True)
+            plot_range = 0
         if legend != None: dataset.set_legend(legend)
-
-        if marker != None:
-            marker = self.find_data_marker(marker)
-            dataset.set_symbol(marker)
+        if symbol != None:
+            symbol = self.find_data_marker(symbol)
+            dataset.set_symbol(symbol)
 
         dataset.add_points(x,y)
         self.auto_focus()
         dataset.add_scaled_points(self.scale_vector(x, 'x'), 
                                   self.scale_vector(y, 'y'))
-        if grid_state == True: self.set_grid_lines('xy', 10)
 
         if dataset.is_colored() == False:
-            dataset.set_color(self.default_plot_colors[self.default_plot_color_counter])
+            color = self.default_plot_colors[self.default_plot_color_counter]
+            dataset.set_color(color)
             self.next_plot_color()
         
-        dataset.set_plot_type(plot_type)
         dataset.draw(plot_range)
 
     def find_data_marker(self, marker):
