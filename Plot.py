@@ -1089,7 +1089,7 @@ class Plot:
 
     # Plot Data
 
-    def graph(self, x, y, tag, *args, legend=None):
+    def graph(self, x, y, tag, *args, legend=None, marker=None):
         """
         Args: legend=, line, scatter, animate, log, show
         """
@@ -1118,6 +1118,10 @@ class Plot:
         
         if legend != None: dataset.set_legend(legend)
 
+        if marker != None:
+            marker = self.find_data_marker(marker)
+            dataset.set_symbol(marker)
+
         dataset.add_points(x,y)
         self.auto_focus()
         dataset.add_scaled_points(self.scale_vector(x, 'x'), 
@@ -1130,6 +1134,14 @@ class Plot:
         
         dataset.set_plot_type(plot_type)
         dataset.draw(plot_range)
+
+    def find_data_marker(self, marker):
+        
+        if marker == '+': return '+'
+        elif marker == 'o': return '\u20dd'
+        elif marker == 'x': return 'x'
+        else: return '\u25cf'
+
 
     ### nPart of ginput!  
     def gen_x_path(self, points, x_start, x_end):

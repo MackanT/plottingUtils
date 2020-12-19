@@ -6,7 +6,7 @@ class DataSeries:
     def __init__(self, tag, canvas):
         self.tag = tag
         self.line_width = 3
-        self.scatter_width = 4
+        self.scatter_width = 20
         self.symbol = '\u25cf'
         self.color = '#5FBFF9'
         self.canvas = canvas
@@ -53,30 +53,37 @@ class DataSeries:
         
         self.has_drawn = True
         if not index: index = [index]
-        if self.has_animation == True:    
+        if self.has_animation == True:   
+
             self.plotted_items = np.empty(1)
-            p1 = self.scaled_points[0,index[0]]
-            p2 = self.scaled_points[1,index[0]]
+            p1 = self.scaled_points[0, index[0]]
+            p2 = self.scaled_points[1, index[0]]
             use_color = self.colorbar[index] if self.has_colorbar else self.color
             dot_size = self.markerbar[index]/2 if self.has_markerbar else self.scatter_width/2
+            
             if self.plot_type == 'scatter': 
-                self.plotted_items[0] = self.__draw_dot(p1, p2, dot_size, use_color)
+                self.plotted_items[0] = self.__draw_dot(p1, p2, dot_size, 
+                                                        use_color)
             elif self.plot_type == 'line': 
-                p3 = self.scaled_points[0,index[0]+1]
-                p4 = self.scaled_points[1,index[0]+1]
-                self.plotted_items[0] = self.__draw_line(p1,p2,p3,p4)  
+                p3 = self.scaled_points[0, index[0]+1]
+                p4 = self.scaled_points[1, index[0]+1]
+                self.plotted_items[0] = self.__draw_line(p1, p2, p3, p4)  
         else:
             self.plotted_items = np.empty(len(index))
             drawPos = 0
             for i in index:
-                p1 = self.scaled_points[0,i]
-                p2 = self.scaled_points[1,i]
+                p1 = self.scaled_points[0, i]
+                p2 = self.scaled_points[1, i]
                 use_color = self.colorbar[i] if self.has_colorbar else self.color
                 dot_size = self.markerbar[i]/2 if self.has_markerbar else self.scatter_width/2
+                
                 if self.plot_type == 'scatter':
-                    self.plotted_items[drawPos] = self.__draw_dot(p1, p2, dot_size, use_color)
+                    self.plotted_items[drawPos] = self.__draw_dot(p1, p2, 
+                                                        dot_size, use_color)
                 elif self.plot_type == 'line' and i < self.data_length-1:
-                    self.plotted_items[drawPos] = self.__draw_line(p1,p2,self.scaled_points[0,i+1],self.scaled_points[1,i+1])
+                    self.plotted_items[drawPos] = self.__draw_line(p1, p2, 
+                                                    self.scaled_points[0, i+1], 
+                                                    self.scaled_points[1, i+1])
                 drawPos += 1
 
     def __draw_dot(self, p1, p2, dot_size, use_color):
@@ -97,16 +104,16 @@ class DataSeries:
         if isinstance(index, int): index = np.array([index])
         if self.plot_type == 'scatter':
             for i in items:
-                p1 = self.scaled_points[0,index[i]] - self.scatter_width/2
-                p2 = self.scaled_points[1,index[i]] - self.scatter_width/2
+                p1 = int(self.scaled_points[0,index[i]] - self.scatter_width/2)
+                p2 = int(self.scaled_points[1,index[i]] - self.scatter_width/2)
                 self.canvas.moveto(int(self.plotted_items[i]), p1, p2)
         elif self.plot_type == 'line':
             for i in items:
                 if i != self.data_length-1:
-                    p1 = self.scaled_points[0,index[i]]
-                    p2 = self.scaled_points[1,index[i]]
-                    p3 = self.scaled_points[0,index[i]+1]
-                    p4 = self.scaled_points[1,index[i]+1]
+                    p1 = int(self.scaled_points[0,index[i]])
+                    p2 = int(self.scaled_points[1,index[i]])
+                    p3 = int(self.scaled_points[0,index[i]+1])
+                    p4 = int(self.scaled_points[1,index[i]+1])
                     self.canvas.coords(int(self.plotted_items[i]), p1, p2, p3, p4)
 
     def update_colors(self):
