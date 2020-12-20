@@ -223,9 +223,7 @@ class Plot:
                                 int(self.canvas_boundary[3]-self.canvas_boundary[1])]
 
     def resize_screen(self, event):
-        """
-        Handles Resize and scaling of entire window
-        """
+        """ Handles Resize and scaling of entire window """
 
         screen_size = self.root_window.geometry()
         plus_location = screen_size.find('+')
@@ -237,6 +235,7 @@ class Plot:
         width_delta = screen_width / self.screen_width
         height_delta = screen_height / self.screen_height
 
+        # Screen Only moved, not resized
         if width_delta == 1 and height_delta == 1: return
         
         self.screen_width = screen_width
@@ -263,7 +262,6 @@ class Plot:
             self.canvas.moveto(self.title, self.screen_width/2 - width, 
                                self.font_size)
         if self.has_y_label: 
-
             bbox = self.canvas.bbox(self.y_label)
             height = (bbox[3] - bbox[1])/2
             p1 = self.font_size
@@ -493,20 +491,20 @@ class Plot:
             self.datapoints_selection = False
 
     def find_datapoint(self, x, y):
-        
+
         shortest_distance = math.inf
-        for item in self.data_series:
-            if item.get_tag() != 'bFit': 
-                points = np.array(item.get_points())
-                delta_x = points[0,:] - x
-                delta_y = points[1,:] - y
-                length = np.zeros(np.size(delta_x))
-                for i in range(np.size(delta_x)):
-                    length[i] = np.sqrt(delta_x[i]**2 + delta_y[i]**2)
-                if np.min(length) < shortest_distance: 
-                    shortest_distance = np.min(length)
-                    best_index = np.argmin(length)
-                    best_point = points[:, best_index]
+        for i in range(1, len(self.data_series)):
+            points = np.array(self.data_series[i].get_points())
+            delta_x = points[0,:] - x
+            delta_y = points[1,:] - y
+
+            length = np.sqrt(delta_x**2 + delta_y**2)
+            
+            if np.min(length) < shortest_distance: 
+                shortest_distance = np.min(length)
+                best_index = np.argmin(length)
+                best_point = points[:, best_index]
+
         return best_point
 
     def draw_point_marker(self):
@@ -515,15 +513,14 @@ class Plot:
         scaled_pos = [self.scale_vector(position[0], 'x'), 
                       self.scale_vector(position[1], 'y')]
         
-        p1 = scaled_pos[0] - 3
-        p2 = scaled_pos[1] - 3
-        p3 = scaled_pos[0] + 3
-        p4 = scaled_pos[1] + 3
+        self.marked_objects.append(self.plot.create_text(scaled_pos[0], 
+                                   scaled_pos[1], text='\u20dd', font='arial 8', anchor=CENTER))
 
-        self.marked_objects.append(self.plot.create_oval(p1, p2, p3, p4))
+        content = '({:.2f}'.format(position[0]) + ', {:.2f})'.format(position[1])
+
         self.marked_text.append(self.plot.create_text(
-                    [scaled_pos[0] + 5, scaled_pos[1]], fill=self.fg_color, 
-                    font=self.font_type, anchor=W, text=position))
+                    [scaled_pos[0] + 10, scaled_pos[1]], fill=self.fg_color, 
+                    font=self.font_type, anchor=W, text=content))
 
     # Ginput (Will be rewritten... will not clean up)
 
@@ -1223,12 +1220,17 @@ class Plot:
                 self.update_text_pos(i)
             for i in range(len(self.marked_points)):
                 position = self.marked_points[i]
+
                 scaled_pos = [self.scale_vector(position[0], 'x'), 
                               self.scale_vector(position[1], 'y')]
-                self.plot.moveto(self.marked_objects[i], scaled_pos[0] - 3, 
-                                scaled_pos[1] - 3)
-                self.plot.moveto(self.marked_text[i], scaled_pos[0] + 5, 
-                                scaled_pos[1] - 7)
+
+                ball = self.plot.bbox(self.marked_objects[i])
+
+                x = int(scaled_pos[0] - (ball[2] - ball[0])/2 )
+                y = int(scaled_pos[1] - (ball[3] - ball[1])/2)
+                
+                self.plot.moveto(self.marked_objects[i], x, y)
+                self.plot.moveto(self.marked_text[i], x + 14, y)
 
     def update_text_pos(self, i):
         position = self.plotted_text_position[i]
