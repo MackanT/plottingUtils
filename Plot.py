@@ -257,15 +257,23 @@ class Plot:
             self.color_bar.place(x = self.canvas_boundary[2] + 10, 
                                  y = self.canvas_boundary[1])
         if self.has_title: 
-            self.canvas.moveto(self.title, self.plot_dimensions[0]/2, 
-                               self.offset_y/2-2*self.font_size)
+
+            bbox = self.canvas.bbox(self.title)
+            width = (bbox[2] - bbox[0])/2
+            self.canvas.moveto(self.title, self.screen_width/2 - width, 
+                               self.font_size)
         if self.has_y_label: 
+
+            bbox = self.canvas.bbox(self.y_label)
+            height = (bbox[3] - bbox[1])/2
             p1 = self.font_size
-            p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2
+            p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2 - height
             self.canvas.moveto(self.y_label, p1, p2)
         if self.has_x_label:
-            p1 = self.screen_width/2
-            p2 = self.canvas_boundary[3] + 2.5*self.font_size
+            bbox = self.canvas.bbox(self.x_label)
+            width = (bbox[2] - bbox[0])/2
+            p1 = self.canvas_boundary[0] + self.plot_dimensions[0]/2 - width
+            p2 = self.canvas_boundary[3] + 5/2*self.font_size
             self.canvas.moveto(self.x_label, p1, p2)
         if self.has_colorbar:
             self.add_colorbar(self.color_bar_colors[0], 
@@ -584,9 +592,9 @@ class Plot:
         if self.has_title == False:
             self.has_title = True
             font = self.font + ' {}'.format(2*self.font_size)
-            self.title = self.canvas.create_text(self.plot_dimensions[0]/2, 
-                        self.offset_y/2-2*self.font_size, font=font,
-                        text = text, fill=self.fg_color, anchor=NW)
+            self.title = self.canvas.create_text(self.screen_width/2, 
+                        self.font_size, font=font, anchor=N,
+                        text = text, fill=self.fg_color)
         else: self.canvas.itemconfig(self.title, text = text)         
 
     def add_text(self, position, text, tag):
@@ -615,7 +623,7 @@ class Plot:
 
     # Axis
 
-    def auto_focus(self, source=None, *args):
+    def auto_focus(self, source=None):
         """ Estimates a good x and y scale for the plotted data by 
         finding the min/max x/y for all data """
 
@@ -660,10 +668,10 @@ class Plot:
         """ Sets/Updates axis labels, Textx = X Label, Texty = Y Label """
         if self.has_x_label == False:
             self.has_x_label = True
-            p1 = self.screen_width/2
-            p2 = self.canvas_boundary[3] + 2.5*self.font_size
+            p1 = self.canvas_boundary[0] + self.plot_dimensions[0]/2
+            p2 = self.canvas_boundary[3] + 5/2*self.font_size
             self.x_label = self.canvas.create_text(p1, p2, font=self.font_type,
-                                    text = textx, fill=self.fg_color, anchor=NW)
+                                    text = textx, fill=self.fg_color, anchor=N)
         elif textx != 'keep': self.canvas.itemconfig(self.x_label, text=textx)
 
         if self.has_y_label == False:
@@ -672,7 +680,7 @@ class Plot:
             p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2
             self.y_label = self.canvas.create_text(p1, p2, font=self.font_type, 
                                     angle=90, text = texty, fill=self.fg_color,
-                                    anchor=NE)
+                                    anchor=N)
         elif texty != 'keep': self.canvas.itemconfig(self.y_label, text=texty)
 
     def set_zero(self, start, end, order):
