@@ -1,5 +1,5 @@
 from tkinter import *
-# import tkinter.font as tkFont
+import tkinter.font as tkFont
 from PIL import ImageTk,Image
 from DataSeries import DataSeries
 import math
@@ -11,23 +11,25 @@ from datetime import datetime
 class Plot:
 
 
-    def __init__(self, width, height, window_name, font_size=None, font_type=None):
+    def __init__(self, width, height, name=None, font_size=None, font_type=None):
         
         # Dimensions
         self.screen_width = width
         self.screen_height = height
-        self.font_size = 10 if font_size == None else font_size
-        self.offset_y = 40 + 4*self.font_size
+
+        self.font_size = font_size if isinstance(font_size, int) else 10
         self.font = 'helvetica' if font_type == None else font_type
-        # self.font = tkFont.Font(family="Comic Sans MS", size=16, weight="bold", slant="italic")
-        self.font_type = '%s %d' %(self.font, self.font_size)
+        self.default_font = tkFont.nametofont('TkDefaultFont')
+        self.default_font.configure(family=self.font, size=self.font_size)
+        self.title_font = tkFont.Font(family=self.font, size=2*self.font_size)
+        self.editor_font = tkFont.Font(family='helvetica', size=9)
         
         # Colors
         self.bg_color = '#E0DFD5'
         self.fg_color = '#313638'
         self.highlight_colors = ['#EF6461', '#9CD08F', '#E4B363', 
-                                 '#E8E9EB', '#5C6B73']
-        # Red, Green, Yellow, Gray, Slate
+                                 '#E8E9EB', '#5C6B73', '#FFFFFF']
+        # Red, Green, Yellow, Gray, Slate, White
         self.default_plot_colors = ['#5FBFF9', '#E85F5C', '#B2FFD6', 
                                     '#F9C784', '#343434', '#613F75']
         self.default_plot_color_counter = 0
@@ -44,6 +46,7 @@ class Plot:
 
         # Graphical Window
         self.root_window = Toplevel()
+        window_name = name if name != None else 'Figure'
         self.root_window.title(window_name)
         self.root_window.geometry('%dx%d'%(self.screen_width, self.screen_height))
         self.root_window.configure(bg=self.bg_color)
@@ -51,7 +54,7 @@ class Plot:
 
 
         self.canvas = Canvas(self.root_window, width = self.screen_width, 
-                             height = self.screen_height, bg=self.highlight_colors[3], 
+                             height = self.screen_height, bg=self.highlight_colors[5], 
                              bd = 0, highlightthickness = 0)
         self.set_canvas_dimensions()
         self.canvas.place(x = 0, y = 0)
@@ -215,9 +218,10 @@ class Plot:
         """
         self.screen_padding_x = 4*self.font_size
         self.offset_x = 2*self.screen_padding_x
+        self.offset_y = 40 + 4*self.font_size
         
         canvas_width = self.screen_width-2*self.screen_padding_x
-        canvas_height = self.screen_height-2*self.offset_y/3
+        canvas_height = self.screen_height-self.offset_y
 
         self.canvas_boundary = [self.offset_x, self.offset_y, canvas_width, canvas_height]
         self.plot_dimensions = [int(self.canvas_boundary[2]-self.canvas_boundary[0]), 
@@ -515,13 +519,14 @@ class Plot:
                       self.scale_vector(position[1], 'y')]
         
         self.marked_objects.append(self.plot.create_text(scaled_pos[0], 
-                                   scaled_pos[1], text='\u20dd', font='arial 8', anchor=CENTER))
+                                   scaled_pos[1], text='\u20dd', 
+                                   anchor=CENTER, fill=self.fg_color))
 
         content = '({:.2f}'.format(position[0]) + ', {:.2f})'.format(position[1])
 
         self.marked_text.append(self.plot.create_text(
                     [scaled_pos[0] + 10, scaled_pos[1]], fill=self.fg_color, 
-                    font=self.font_type, anchor=W, text=content))
+                    anchor=W, text=content))
 
     # Ginput (Will be rewritten... will not clean up)
 
@@ -589,9 +594,8 @@ class Plot:
         """ Sets/Updates title, Text = content """
         if self.has_title == False:
             self.has_title = True
-            font = self.font + ' {}'.format(2*self.font_size)
             self.title = self.canvas.create_text(self.screen_width/2, 
-                        self.font_size, font=font, anchor=N,
+                        self.font_size, font=self.title_font, anchor=N,
                         text = text, fill=self.fg_color)
         else: self.canvas.itemconfig(self.title, text = text)         
 
@@ -601,7 +605,7 @@ class Plot:
         scaled_pos = [self.scale_vector(position[0], 'x'), 
                       self.scale_vector(position[1], 'y')]
         self.plotted_text.append(self.plot.create_text(scaled_pos, anchor=NW,
-                      font=self.font_type, text=text, fill=self.fg_color))
+                      text=text, fill=self.fg_color))
         self.plotted_text_tags.append(tag)
 
     def update_text(self, text, tag):
@@ -625,13 +629,14 @@ class Plot:
         """ Estimates a good x and y scale for the plotted data by 
         finding the min/max x/y for all data """
 
+
         all_values = False if source == 'scale_x' or source == 'scale_y' else True
         for i in range(1, len(self.data_series)):
-            
+
             points = np.array(self.data_series[i].get_points())
 
             x, y = points[0,:], points[1,:]
-            if all_values == False: x, y = x[x >= 0], y[y >= 0]
+            if all_values == False: x, y = x[x > 0], y[y > 0]
 
             if i == 1:
                 min_x, max_x = np.min(x), np.max(x)
@@ -642,6 +647,11 @@ class Plot:
                 if np.min(y) < min_y: min_y = np.min(y)
                 if np.max(y) > max_y: max_y = np.max(y)
 
+
+        # Used by log axis to auto set when changing lin/log            
+        if source == 'scale_x': return [min_x, max_x]
+        if source == 'scale_y': return [min_y, max_y]
+
         # To avoid div by 0, if min_x = max_x etc.
         delta_x = (max_x - min_x) / 10 if min_x != max_x else 2
         delta_y = (max_y - min_y) / 10 if min_y != max_y else 2
@@ -649,10 +659,6 @@ class Plot:
         # Graph auto-set
         if source == 'axis_x': return [round(min_x - delta_x), round(max_x + delta_x)]
         if source == 'axis_y': return [round(min_y - delta_y), round(max_y + delta_y)]
-
-        # Used by log axis to auto set when changing lin/log            
-        if source == 'scale_x': return [min_x, max_x]
-        if source == 'scale_y': return [min_y, max_y]
 
         if self.x_boundary and self.y_boundary:
             same_x = self.x_boundary[0] == round(min_x - delta_x)
@@ -669,17 +675,17 @@ class Plot:
             self.has_x_label = True
             p1 = self.canvas_boundary[0] + self.plot_dimensions[0]/2
             p2 = self.canvas_boundary[3] + 5/2*self.font_size
-            self.x_label = self.canvas.create_text(p1, p2, font=self.font_type,
-                                    text = textx, fill=self.fg_color, anchor=N)
+            self.x_label = self.canvas.create_text(p1, p2, text = textx, 
+                                                fill=self.fg_color, anchor=N)
         elif textx != 'keep': self.canvas.itemconfig(self.x_label, text=textx)
 
         if self.has_y_label == False:
             self.has_y_label = True
             p1 = self.font_size
             p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2
-            self.y_label = self.canvas.create_text(p1, p2, font=self.font_type, 
-                                    angle=90, text = texty, fill=self.fg_color,
-                                    anchor=N)
+            self.y_label = self.canvas.create_text(p1, p2, angle=90, 
+                                            text = texty, fill=self.fg_color,
+                                            anchor=N)
         elif texty != 'keep': self.canvas.itemconfig(self.y_label, text=texty)
 
     def set_zero(self, start, end, order):
@@ -743,7 +749,7 @@ class Plot:
                 self.x_boundary.append(x_start + i*valueSize)
             
         elif self.scale_type[0] == 'log':
-            if x_start <= 0: x_start, x_end = self.log_scale(source='scale_x')
+            if x_start <= 0: x_start, x_end = self.log_scale('scale_x')
             self.x_scale_factor = (x_end-x_start)/self.plot_dimensions[0]
             k = (x_start-x_end)/(math.log10(x_start)-math.log10(x_end))
             c = x_end - k * math.log10(x_end)
@@ -807,7 +813,7 @@ class Plot:
 
         elif self.scale_type[1] == 'log':
             
-            if y_start <= 0: y_start, y_end = self.log_scale(source='scale_y')
+            if y_start <= 0: y_start, y_end = self.log_scale('scale_y')
             self.y_scale_factor = (y_end-y_start)/self.plot_dimensions[1]
             k = (y_start-y_end)/(math.log10(y_start)-math.log10(y_end))
             c = y_end - k * math.log10(y_end)
@@ -844,7 +850,7 @@ class Plot:
                 else: tex = self.scale_unit_style.format(self.x_boundary[i])
                 self.x_axis_numbers.append(self.canvas.create_text(pos, 
                                             anchor=N, fill=self.fg_color, 
-                                            font=self.font_type, text=tex))
+                                            text=tex))
         elif order == 'y':
             if self.show_axis_custom == 'blank':
                 for item in self.y_axis_numbers: self.canvas.delete(item)
@@ -857,7 +863,7 @@ class Plot:
                 tex = self.scale_unit_style.format(self.y_boundary[i])
                 self.y_axis_numbers.append(self.canvas.create_text(pos, 
                                             anchor=E, fill=self.fg_color, 
-                                            font=self.font_type, text=tex))
+                                            text=tex))
 
     def log_scale(self, order):
         """
@@ -995,7 +1001,8 @@ class Plot:
 
         names = []
         for dataset in self.data_series:
-            if dataset.get_legend() != None: names.append(dataset.get_legend())
+            if dataset.get_legend() != None: 
+                names.append(dataset.get_legend())
         if tag != None: names.append(tag)
 
         text_length = len(max(names, key=len))
@@ -1023,23 +1030,35 @@ class Plot:
 
         i = len(self.legend_content)
 
+        # print(color)
+
         p1 = self.legend_x_offset
         p2 = self.legend_y_offset + 2*i*self.font_size
 
         self.legend_content.append(self.plot.create_text(p1, p2, anchor=NW, 
-                                   fill=self.fg_color, font=self.font_type, 
-                                   text=name))
+                                   fill=self.fg_color, text=name))
 
         self.legend_markers.append(self.plot.create_text(p1 - 3/2*self.font_size, 
                                    p2, fill=color, text=symbol, anchor=NW))
 
-    def update_legend(self, names):
-        for i in range(len(names)):
-            self.plot.itemconfig(self.legend_content[i], text=names[i])
+    def update_legend(self, tag, text=None, color=None, symbol=None):
+        
+        dataset = self.find_dataset(tag)
+        if dataset == None: return
 
-    def find_legend(self, content):
+        tex = dataset.get_legend()
+        i = self.find_legend(text=tex)
+
+        if text != None:
+            self.plot.itemconfig(self.legend_content[i], text=name)
+        if color != None:
+            self.plot.itemconfig(self.legend_markers[i], fill=color)
+        if symbol != None:
+            self.plot.itemconfig(self.legend_markers[i], text=symbol)
+
+    def find_legend(self, item=None, text=None):
         """ Returns index of legend item, Content = widget to search"""
-        text = self.plot.itemcget(content, 'text')
+        if text == None: text = self.plot.itemcget(item, 'text')
         for i in range(len(self.legend_content)):
             if self.plot.itemcget(self.legend_content[i], 'text') == text:
                 return i    
@@ -1295,7 +1314,7 @@ class Plot:
                 self.plotted_text_position[txt_index][1] += y_scale
                 self.update_text_pos(txt_index)
 
-            legend_index = self.find_legend(self.plot_editor_selected_item)
+            legend_index = self.find_legend(item=self.plot_editor_selected_item)
             if legend_index != None and legend_index > 0:
                 self.switch_legend_index(legend_index, -1)
     
@@ -1308,7 +1327,7 @@ class Plot:
                 self.update_text_pos(txt_index)
                 return
             
-            legend_index = self.find_legend(self.plot_editor_selected_item)
+            legend_index = self.find_legend(item=self.plot_editor_selected_item)
             if legend_index != None and legend_index+1 < len(self.legend_content):
                 self.switch_legend_index(legend_index, 1)
                 
@@ -1362,6 +1381,9 @@ class Plot:
         if self.is_hex_color(color): 
             dataset = self.find_dataset(tag, forced='new')
             dataset.set_color(color)
+            dataset.update_colors()
+            if dataset.get_legend() and self.has_legend: 
+                        self.update_legend(tag, color=color)
 
     def set_colorbar(self, color_array, tag):
         dataset = self.find_dataset(tag, forced='new')
@@ -1398,9 +1420,10 @@ class Plot:
             dH = self.plot_dimensions[1]/(len(args[0])-1)
             for i in range(len(args[0])):
 
-                scaled_pos = [self.canvas_boundary[2] + 50, self.canvas_boundary[3] - i*dH - self.font_size]
-                self.color_bar_text.append(self.canvas.create_text(scaled_pos, anchor=NW,
-                    font=self.font_type, text=args[0][i], fill=self.fg_color))
+                scaled_pos = [self.canvas_boundary[2] + 50, 
+                              self.canvas_boundary[3] - i*dH - self.font_size]
+                self.color_bar_text.append(self.canvas.create_text(scaled_pos, 
+                                anchor=NW, text=args[0][i], fill=self.fg_color))
 
     def get_colorbar(self): 
         return np.flip(self.colorbar_colors)
@@ -1523,7 +1546,8 @@ class Plot:
 
     def __editor_title(self):
 
-        self.editor_canvas.create_text(10, 10, anchor=W, text='Title')
+        self.editor_canvas.create_text(10, 10, anchor=W, text='Title', 
+                                       fill=self.fg_color, font=self.editor_font)
         self.editor_canvas.create_line(10,16,200,16)
         self.title_input = Entry(self.editor_canvas, fg='gray')
         self.title_input.insert(0, 'Title')
@@ -1534,7 +1558,8 @@ class Plot:
 
     def __editor_x_axis(self):
         
-        self.editor_canvas.create_text(10, 60, anchor=W, text='X Axis')
+        self.editor_canvas.create_text(10, 60, anchor=W, text='X Axis',
+                                       fill=self.fg_color, font=self.editor_font)
         self.editor_canvas.create_line(10,66,200,66)
         self.lower_x_scale = Entry(self.editor_canvas, fg='gray')
         self.lower_x_scale.insert(0, 'Lower X')
@@ -1569,7 +1594,8 @@ class Plot:
 
     def __editor_y_axis(self):
         
-        self.editor_canvas.create_text(10, 150, anchor=W, text='Y Axis')
+        self.editor_canvas.create_text(10, 150, anchor=W, text='Y Axis', 
+                                       fill=self.fg_color, font=self.editor_font)
         self.editor_canvas.create_line(10,156,200,156)
         self.lower_y_scale = Entry(self.editor_canvas, fg='gray')
         self.lower_y_scale.insert(0, 'Lower Y')
@@ -1604,7 +1630,8 @@ class Plot:
 
     def __editor_labels(self):
         
-        self.editor_canvas.create_text(230, 10, anchor=W, text='Labels')
+        self.editor_canvas.create_text(230, 10, anchor=W, text='Labels', 
+                                       fill=self.fg_color, font=self.editor_font)
         self.editor_canvas.create_line(230,16,420,16)
 
         self.x_label_input = Entry(self.editor_canvas, fg='gray')
@@ -1623,7 +1650,8 @@ class Plot:
 
     def __editor_text(self):
         
-        self.editor_canvas.create_text(230, 80, anchor=W, text='Text Editor')
+        self.editor_canvas.create_text(230, 80, anchor=W, text='Text Editor', 
+                                       fill=self.fg_color, font=self.editor_font)
         self.editor_canvas.create_line(230,86,420,86)
 
         self.select_item_text_input = Entry(self.editor_canvas, fg='gray')
@@ -1639,7 +1667,8 @@ class Plot:
 
     def __editor_animation(self):
          
-        self.editor_canvas.create_text(230, 130, anchor=W, text='Animation')
+        self.editor_canvas.create_text(230, 130, anchor=W, text='Animation', 
+                                       fill=self.fg_color, font=self.editor_font)
         self.editor_canvas.create_line(230,136,420,136)
 
         self.animation_speed_input = Entry(self.editor_canvas, fg='gray')
@@ -1650,7 +1679,8 @@ class Plot:
 
     def __editor_save_data(self):
         
-        self.editor_canvas.create_text(450, 10, anchor=W, text='Save Data')
+        self.editor_canvas.create_text(450, 10, anchor=W, text='Save Data', 
+                                       fill=self.fg_color, font=self.editor_font)
         self.editor_canvas.create_line(450,16,680,16)
 
         self.om_save_variable = StringVar()
@@ -1665,12 +1695,16 @@ class Plot:
                                 bg=self.bg_color, image=self.button_image_save_data)
         self.save_data_button.place(x=640,y=22, anchor=NW)
 
-        self.save_data_name_color = self.editor_canvas.create_oval(450, 36, 458, 44, state='hidden')
-        self.save_data_name_selection = self.editor_canvas.create_text(465, 40, anchor=W, text='')
+        self.save_data_name_color = self.editor_canvas.create_oval(450, 36, 
+                                        458, 44, state='hidden')
+        self.save_data_name_selection = self.editor_canvas.create_text(465, 40, 
+                                        anchor=W, text='', fill=self.fg_color, 
+                                        font=self.editor_font)
 
     def __editor_load_data(self):
         
-        self.editor_canvas.create_text(450, 62, anchor=W, text='Load Data')
+        self.editor_canvas.create_text(450, 62, anchor=W, text='Load Data', 
+                                       fill=self.fg_color, font=self.editor_font)
         self.editor_canvas.create_line(450,68,680,68)
 
         self.om_load_variable = StringVar()
@@ -1685,8 +1719,9 @@ class Plot:
                                 bg=self.bg_color, image=self.button_image_load_data)
         self.load_data_button.place(x=640,y=74, anchor=NW)
 
-        self.load_data_name_selection = self.editor_canvas.create_text(465, 
-                                                        128, anchor=W, text='')
+        self.load_data_name_selection = self.editor_canvas.create_text(465, 128,
+                                        anchor=W, text='', fill=self.fg_color, 
+                                        font=self.editor_font)
 
     def __editor_load_selections(self):
 
@@ -2026,7 +2061,7 @@ class Plot:
         if self.plot_editor_selected_item != None:
             
             # If Legend, autosets new legend position
-            legend_index = self.find_legend(self.plot_editor_selected_item)
+            legend_index = self.find_legend(item=self.plot_editor_selected_item)
             content = self.select_item_text_input.get()
             if legend_index != None:
                 for item in self.data_series:
