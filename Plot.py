@@ -1132,7 +1132,7 @@ class Plot:
     # Plot Data
 
     def graph(self, x, y, tag, style=None, scale=None, grid=None, legend=None, 
-             animate=None, symbol=None):
+             animate=None):
         """
         Main 2D plot. 
         Style: scatter,
@@ -1149,16 +1149,17 @@ class Plot:
         plot_range = range(np.size(x))
         if grid == 'on': self.has_x_grid = self.has_y_grid = True
         if scale == 'log': self.scale_type = ['log', 'log']
-        if style == 'scatter': dataset.set_plot_type('scatter')
+        if style != None: 
+            style = self.find_data_marker(style)
+            if style != None:
+                dataset.set_plot_type('scatter')
+                dataset.set_symbol(style)
         if animate == 'on': 
             self.enable_animator(len(x)-1)
             self.animation_tags.append(tag)
             dataset.set_animation(True)
             plot_range = 0
         if legend != None: dataset.set_legend(legend)
-        if symbol != None:
-            symbol = self.find_data_marker(symbol)
-            dataset.set_symbol(symbol)
 
         dataset.add_points(x,y)
         self.auto_focus()
@@ -1174,10 +1175,15 @@ class Plot:
 
     def find_data_marker(self, marker):
         
-        if marker == '+': return '+'
+        # Returning None -> line graph
+        if marker == 'line': return None
+        elif marker == '+': return '+'
         elif marker == 'o': return '\u20dd'
+        elif marker == 'scatter': return '\u25cf'
         elif marker == 'x': return 'x'
-        else: return '\u25cf'
+        elif marker == '*': return '*'
+        elif marker == 'square': return '\u25a0'
+        else: return None
 
 
     ### nPart of ginput!  
