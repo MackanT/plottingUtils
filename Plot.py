@@ -5,6 +5,7 @@ from DataSeries import DataSeries
 import math
 import numpy as np
 import os
+import re
 from datetime import datetime
 
 class Plot:
@@ -1132,15 +1133,15 @@ class Plot:
     # Plot Data
 
     def graph(self, x, y, tag, style=None, scale=None, grid=None, legend=None, 
-             animate=None):
+             animate=None, color=None):
         """
         Main 2D plot. 
-        Style: scatter,
+        Style: line, scatter, dot, +, x, *, circle
         Scale: log,
         grid: on,
         legend: 'name',
         animate: on,
-        symbol: +, x, dot, circle,
+        color: #xxxxxx, only hex colors
         """
         self.has_graph = True
         dataset = self.find_dataset(tag, forced='new')
@@ -1160,6 +1161,9 @@ class Plot:
             dataset.set_animation(True)
             plot_range = 0
         if legend != None: dataset.set_legend(legend)
+        if color != None:
+            if self.is_hex_color(color): dataset.set_color(color)
+            
 
         dataset.add_points(x,y)
         self.auto_focus()
@@ -1352,11 +1356,14 @@ class Plot:
         if dataset == None: return
         dataset.update_colors()
 
+    def set_color(self, color, tag):
+        """ Set color for dataseries in hex code """
+        if self.is_hex_color(color): 
+            dataset = self.find_dataset(tag, forced='new')
+            dataset.set_color(color)
+
     def set_colorbar(self, color_array, tag):
-        dataset = self.find_dataset(tag)
-        if dataset == None: 
-            self.add_dataset(tag)
-            dataset = self.find_dataset(tag)
+        dataset = self.find_dataset(tag, forced='new')
         dataset.set_colorbar(color_array)
 
     def add_colorbar(self, color_start, color_end, *args):   
@@ -1396,6 +1403,12 @@ class Plot:
 
     def get_colorbar(self): 
         return np.flip(self.colorbar_colors)
+
+    def is_hex_color(self, color):
+        hex_colors = r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'
+        regexp = re.compile(hex_colors)
+        if regexp.search(color): return True
+        return False
 
     # Is this even in use???
     def clear_plot_data(self, tag):
