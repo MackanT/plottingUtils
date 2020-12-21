@@ -980,14 +980,15 @@ class Plot:
         elif pos == 'SE': self.legend_pos = 'SE'
         elif pos == 'SW': self.legend_pos = 'SW'
 
-        names, colors = [], []
+        names, colors, symbol = [], [], []
         for dataset in self.data_series:
             if dataset.get_legend() != None:
                 names.append(dataset.get_legend())
                 colors.append(dataset.get_color())
+                symbol.append(dataset.get_symbol())
 
         self.update_legend_offsets()
-        for i in range(len(names)): self.add_to_legend(names[i], colors[i])
+        for i in range(len(names)): self.add_to_legend(names[i], colors[i], symbol[i])
 
     def update_legend_offsets(self, tag=None):
 
@@ -1017,20 +1018,22 @@ class Plot:
                              - 3/2*self.font_size, self.legend_y_offset 
                              + (2*i+1/4)*self.font_size)
 
-    def add_to_legend(self, name, color):
+    def add_to_legend(self, name, color, symbol):
 
         i = len(self.legend_content)
-        self.legend_content.append(self.plot.create_text(self.legend_x_offset,
-                            self.legend_y_offset + 2*i*self.font_size, anchor=NW, 
-                            fill=self.fg_color, font=self.font_type, 
-                            text=name))
-                
-        p1 = self.legend_x_offset-3/2*self.font_size
-        p2 = self.legend_y_offset + (2*i+1/4)*self.font_size
-        p3 = self.legend_x_offset-1/2*self.font_size
-        p4 = self.legend_y_offset + (2*i+5/4)*self.font_size
-        self.legend_markers.append(self.plot.create_oval(
-                            p1, p2, p3, p4, fill=color))
+
+        p1 = self.legend_x_offset #-3/2*self.font_size
+        p2 = self.legend_y_offset + 2*i*self.font_size #+ (2*i+1/4)*self.font_size
+
+        self.legend_content.append(self.plot.create_text(p1, p2, anchor=NW, 
+                                   fill=self.fg_color, font=self.font_type, 
+                                   text=name))
+
+        self.legend_markers.append(self.plot.create_text(p1 - 3/2*self.font_size, 
+                                   p2, fill=color, text=symbol, anchor=NW))
+
+        # self.legend_markers.append(self.plot.create_oval(
+        #                     p1, p2, p3, p4, fill=color))
 
     def update_legend(self, names):
         for i in range(len(names)):
@@ -1457,7 +1460,7 @@ class Plot:
             self.graph(data[0,:], data[1,:], str(tag), self.load_data_type)
 
             if self.load_data_legend: 
-                self.add_to_legend(tag, self.load_data_color)
+                self.add_to_legend(tag, self.load_data_color, dataset.get_symbol())
                 self.reposition_legend(tag=tag)
 
 

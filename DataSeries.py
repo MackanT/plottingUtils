@@ -32,6 +32,11 @@ class DataSeries:
         if self.has_legend: return self.legend_name
         else: return None
 
+    def get_symbol(self):
+        """ Returns current symbol for legend to properly update, if line returns dot """
+        if self.plot_type == 'scatter': return self.symbol
+        else: return '\u25cf'
+
     def set_symbol(self, symbol):
         self.symbol = symbol
 
