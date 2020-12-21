@@ -104,8 +104,11 @@ class DataSeries:
         if isinstance(index, int): index = np.array([index])
         if self.plot_type == 'scatter':
             for i in items:
-                p1 = int(self.scaled_points[0,index[i]] - self.scatter_width/2)
-                p2 = int(self.scaled_points[1,index[i]] - self.scatter_width/2)
+                box = self.canvas.bbox(int(self.plotted_items[i]))
+                width = (box[2] - box[0])/2
+                height = (box[3] - box[1])/2
+                p1 = int(self.scaled_points[0,index[i]] - width)
+                p2 = int(self.scaled_points[1,index[i]] - height)
                 self.canvas.moveto(int(self.plotted_items[i]), p1, p2)
         elif self.plot_type == 'line':
             for i in items:
