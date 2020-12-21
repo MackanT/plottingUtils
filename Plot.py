@@ -625,10 +625,11 @@ class Plot:
         """ Estimates a good x and y scale for the plotted data by 
         finding the min/max x/y for all data """
 
-        all_values = False if source == 'scale_x' or 'scale_y' else True
+        all_values = False if source == 'scale_x' or source == 'scale_y' else True
         for i in range(1, len(self.data_series)):
             
             points = np.array(self.data_series[i].get_points())
+
             x, y = points[0,:], points[1,:]
             if all_values == False: x, y = x[x >= 0], y[y >= 0]
 
@@ -1022,8 +1023,8 @@ class Plot:
 
         i = len(self.legend_content)
 
-        p1 = self.legend_x_offset #-3/2*self.font_size
-        p2 = self.legend_y_offset + 2*i*self.font_size #+ (2*i+1/4)*self.font_size
+        p1 = self.legend_x_offset
+        p2 = self.legend_y_offset + 2*i*self.font_size
 
         self.legend_content.append(self.plot.create_text(p1, p2, anchor=NW, 
                                    fill=self.fg_color, font=self.font_type, 
@@ -1031,9 +1032,6 @@ class Plot:
 
         self.legend_markers.append(self.plot.create_text(p1 - 3/2*self.font_size, 
                                    p2, fill=color, text=symbol, anchor=NW))
-
-        # self.legend_markers.append(self.plot.create_oval(
-        #                     p1, p2, p3, p4, fill=color))
 
     def update_legend(self, names):
         for i in range(len(names)):
@@ -1430,7 +1428,7 @@ class Plot:
 
     # Save Data
 
-    def save_data(self, *args):
+    def __save_data(self, *args):
 
         for i in args:
             dataset = self.find_dataset(i)
@@ -1443,7 +1441,7 @@ class Plot:
             data = dataset.get_points()
             np.save(data_name, data, allow_pickle=True, fix_imports=True)
     
-    def load_data(self):
+    def __load_data(self):
 
         tag = self.om_load_variable.get()
         if tag == '': return 
@@ -1462,9 +1460,22 @@ class Plot:
             if self.load_data_legend: 
                 self.add_to_legend(tag, self.load_data_color, dataset.get_symbol())
                 self.reposition_legend(tag=tag)
+        
+            self.raise_items()
 
+    def load_data(self, tag):
+        """ Opens saved data and returns it as x, y """
+        data_name = self.file_save_location + '\\' + str(tag) + '.npy'
+        if os.path.exists(data_name): return np.load(data_name)    
 
+    def save_data(self, filename, tag):
 
+        dataset = self.find_dataset(tag)
+        if dataset == None: return
+
+        data_name = self.file_save_location + '\\' + str(filename)
+        data = dataset.get_points()
+        np.save(data_name, data, allow_pickle=True, fix_imports=True)
 
 
     # Plot Editor
@@ -1650,7 +1661,7 @@ class Plot:
         self.save_data_tag_selector.place(x=580, y=22)
  
         self.save_data_button = Button(self.editor_canvas, width=25, height=25, 
-                                command=lambda: self.save_data(self.om_save_variable.get()), 
+                                command=lambda: self.__save_data(self.om_save_variable.get()), 
                                 bg=self.bg_color, image=self.button_image_save_data)
         self.save_data_button.place(x=640,y=22, anchor=NW)
 
@@ -1670,7 +1681,7 @@ class Plot:
         self.load_data_tag_selector.place(x=580, y=74)
 
         self.load_data_button = Button(self.editor_canvas, width=25, height=25, 
-                                command=lambda:self.load_data(), 
+                                command=lambda:self.__load_data(), 
                                 bg=self.bg_color, image=self.button_image_load_data)
         self.load_data_button.place(x=640,y=74, anchor=NW)
 
