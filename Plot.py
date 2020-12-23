@@ -578,21 +578,23 @@ class Plot:
 
         return best_point
 
-    def draw_point_marker(self):
+    def datapoint_mark(self):
 
         position = self.marked_points[-1]
-        scaled_pos = [self.scale_vector(position[0], 'x'), 
-                      self.scale_vector(position[1], 'y')]
+        scaled_x = self.scale_vector(position[0], 'x')
+        scaled_y = self.scale_vector(position[1], 'y')
         
-        self.marked_objects.append(self.plot.create_text(scaled_pos[0], 
-                                   scaled_pos[1], text='\u20dd', 
-                                   anchor=CENTER, fill=self.fg_color))
+        self.marked_objects.append(self.plot.create_text(scaled_x, 
+                                   scaled_y, text = '\u20dd', 
+                                   anchor = CENTER, fill = self.fg_color))
 
-        content = '({:.2f}'.format(position[0]) + ', {:.2f})'.format(position[1])
+        content = ('({:.2f}'.format(position[0]) 
+                + ', {:.2f})'.format(position[1]))
 
         self.marked_text.append(self.plot.create_text(
-                    [scaled_pos[0] + 10, scaled_pos[1]], fill=self.fg_color, 
-                    anchor=W, text=content))
+                    [scaled_x + 10, scaled_y], fill = self.fg_color, 
+                    anchor = W, text = content))
+
 
     # Ginput (Will be rewritten... will not clean up)
 
