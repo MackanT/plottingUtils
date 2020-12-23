@@ -160,50 +160,65 @@ class Plot:
 
     # Datasets
 
-    def add_dataset(self, tag):
+    def dataset_add(self, tag):
         """
-        Creates a Dataset series with assigned tag if it does not 
-        already exist. A dataset is needed for each series that is to be
-        plotted
+        Creates a Dataset object with assigned tag if it 
+        does not already exist. A dataset object is needed 
+        for each unique plotted dataset
         """
-        if self.find_dataset(tag) != None: return
+
+        if self.dataset_find(tag) != None: return
         else: self.data_series.append(DataSeries(tag, self.plot))
 
-    def remove_dataset(self, tag):
+    def dataset_remove(self, tag):
         """
         Removes an existing datasets from memory and plotted view
         """
         for i in range(len(self.data_series)):
             if self.data_series[i].get_tag() == tag:
-                dataset = self.find_dataset(tag)
+                dataset = self.data_series[i]
+                if dataset.has_legend() == True:
+                    1 # Add remove legend item!
                 dataset.clear_data()
                 self.data_series.pop(i)
                 return
 
-    def clear_dataset(self, tag):
+    def dataset_state(self, state, tag):
         """
-        Removes dataset from plotted view but keeps it in memory
+        Hides/Unhides dataset from plotted view but keeps it in memory
+        state = hidden, shown
         """
-        dataset = self.find_dataset(tag)
-        if dataset != None: dataset.undraw_item(0)
+        dataset = self.dataset_find(tag)
+        if dataset != None: 
+            if state == 'hidden': dataset.undraw_item(0)
+            elif state == 'shown': 
+                n_points = range(dataset.get_number_of_points())
+                dataset.draw(n_points)
+                self.update_plots(tag)
+    
+    def dataset_find(self, tag, create=None):
+        """
+        Returns the requested dataset given tag. 
+        create='new' will generate the dataset if
+        it does not exist
+        """
+
+        for item in self.data_series: if item.get_tag() == tag: return item
+        
+        if create == 'new':
+            dataset = self.dataset_add(tag)
+            return self.data_series[-1]
+
+
+    # Index Operations
 
     def remove_drawn_items(self, search_list):
         """
-        Clears plotted content from the window itself
+        Clears plotted content in search_list
         """
         for item in search_list: self.canvas.delete(int(item))            
         search_list.clear()
 
-    def find_dataset(self, tag, forced=None):
-        """
-        Searches and returns the requested dataset
-        """
-        for item in self.data_series:
-            if item.get_tag() == tag: return item
-        
-        if forced == 'new':
-            dataset = self.add_dataset(tag)
-            return self.data_series[-1]
 
     def find_tag_number(self, tag, search_list):
         """
@@ -561,10 +576,7 @@ class Plot:
         Adds dataset if it does not exist and then 
         sets color of specified dataset
         """
-        dataset = self.find_dataset(tag)
-        if dataset != None: 
-            self.add_dataset(tag)
-            dataset = self.find_dataset(tag)
+        dataset = self.dataset_find(tag, create='new')
         dataset.set_color(color)
 
     def set_line_width(self, lineWidth, tag):
@@ -573,10 +585,7 @@ class Plot:
         sets width of specified dataset lines
         """
 
-        dataset = self.find_dataset(tag)
-        if dataset != None: 
-            self.add_dataset(tag)
-            dataset = self.find_dataset(tag)
+        dataset = self.dataset_find(tag, create='new')
         dataset.set_line_width(lineWidth)
 
     def set_dot_size(self, size, tag):
@@ -585,10 +594,7 @@ class Plot:
         sets size of specified datasets scatter points
         """
 
-        dataset = self.find_dataset(tag)
-        if dataset != None: 
-            self.add_dataset(tag)
-            dataset = self.find_dataset(tag) 
+        dataset = self.dataset_find(tag, create='new')
         dataset.set_dot_size(size)
 
     # Plot Text
@@ -1046,7 +1052,7 @@ class Plot:
 
     def update_legend(self, tag, text=None, color=None, symbol=None):
         
-        dataset = self.find_dataset(tag)
+        dataset = self.dataset_find(tag)
         if dataset == None: return
 
         tex = dataset.get_legend()
@@ -1159,15 +1165,15 @@ class Plot:
              animate=None, color=None):
         """
         Main 2D plot. 
-        Style: line, scatter, dot, +, x, *, circle
+        Style: line, scatter, dot, +, x, *, circle etc.
         Scale: log,
         grid: on,
         legend: 'name',
         animate: on,
         color: #xxxxxx, only hex colors
         """
-        self.has_graph = True
-        dataset = self.find_dataset(tag, forced='new')
+
+        dataset = self.dataset_find(tag, create='new')
 
         # Plotting Parameters
         plot_range = range(np.size(x))
@@ -1228,9 +1234,9 @@ class Plot:
             return xPoints
     def plotBestFit(self, *args):
         
-        dataset = self.find_dataset('bFit')
+        dataset = self.dataset_find('bFit')
         if dataset != None: 
-            # num = self.find_dataset('bFit')
+            # num = self.dataset_find('bFit')
             for i in range(dataset.getNumberOfPoints()):
                 y = self.lineApproximations[0] + self.lineApproximations[1]*math.exp(self.lineApproximations[2]*dataset.getPoint(i)[0])
                 dataset.appendPoint([dataset.getPoint(i)[0],y], i)
@@ -1350,14 +1356,11 @@ class Plot:
     # Markers
 
     def set_markerbar(self, size_array, tag):
-        dataset = self.find_dataset(tag)
-        if dataset == None: 
-            self.add_dataset(tag)
-            dataset = self.find_dataset(tag)
+        dataset = self.dataset_find(tag, create='new')
         dataset.set_markerbar(size_array)
 
     def update_markers(self, tag):
-        dataset = self.find_dataset(tag)
+        dataset = self.dataset_find(tag)
         if dataset == None: return
         dataset.update_markers()
     
@@ -1375,21 +1378,21 @@ class Plot:
         return colors
 
     def update_colors(self, tag):
-        dataset = self.find_dataset(tag)
+        dataset = self.dataset_find(tag)
         if dataset == None: return
         dataset.update_colors()
 
     def set_color(self, color, tag):
         """ Set color for dataseries in hex code """
         if self.is_hex_color(color): 
-            dataset = self.find_dataset(tag, forced='new')
+            dataset = self.dataset_find(tag, create='new')
             dataset.set_color(color)
             dataset.update_colors()
             if dataset.get_legend() and self.has_legend: 
                         self.update_legend(tag, color=color)
 
     def set_colorbar(self, color_array, tag):
-        dataset = self.find_dataset(tag, forced='new')
+        dataset = self.dataset_find(tag, create='new')
         dataset.set_colorbar(color_array)
 
     def add_colorbar(self, color_start, color_end, *args):   
@@ -1439,17 +1442,17 @@ class Plot:
 
     # Is this even in use???
     def clear_plot_data(self, tag):
-        plotPos = self.find_dataset(tag)
+        plotPos = self.dataset_find(tag)
         if plotPos != None: 
             for item in self.plotted_items[plotPos]:
                 self.canvas.delete(item)
 
     def get_plot_x_values(self, index, tag):
-        dataset = self.find_dataset(tag)
+        dataset = self.dataset_find(tag)
         if dataset != None: return dataset.get_point(index)
 
     def get_plot_y_values(self, index, tag):
-        dataset = self.find_dataset(tag)
+        dataset = self.dataset_find(tag)
         if dataset != None: return dataset.get_point(index)
 
     # Save Data
@@ -1457,7 +1460,7 @@ class Plot:
     def __save_data(self, *args):
 
         for i in args:
-            dataset = self.find_dataset(i)
+            dataset = self.dataset_find(i)
             if dataset == None: return
 
             cur_time = str(datetime.now().time())[0:8]
@@ -1475,8 +1478,8 @@ class Plot:
         data_name = self.file_save_location + '\\' + str(tag)
         if os.path.exists(data_name):
             
-            self.add_dataset(tag)
-            dataset = self.find_dataset(tag)
+            self.dataset_add(tag)
+            dataset = self.dataset_find(tag)
             dataset.set_color(self.load_data_color)
             dataset.set_legend(tag)
 
@@ -1496,7 +1499,7 @@ class Plot:
 
     def save_data(self, filename, tag):
 
-        dataset = self.find_dataset(tag)
+        dataset = self.dataset_find(tag)
         if dataset == None: return
 
         data_name = self.file_save_location + '\\' + str(filename)
@@ -1891,7 +1894,7 @@ class Plot:
     def __update_save_tag(self, *args):
         
         tag = self.om_save_variable.get()
-        tag_color = self.find_dataset(tag).get_color()
+        tag_color = self.dataset_find(tag).get_color()
 
         self.editor_canvas.itemconfig(self.save_data_name_selection, text=tag)
         self.editor_canvas.itemconfig(self.save_data_name_color, fill=tag_color, state='normal')
@@ -1997,12 +2000,12 @@ class Plot:
                     x = self.gen_x_path(50, self.x_boundary[0], self.x_boundary[-1])
                 y = [0.1 for i in range(len(x))]
                 
-                dataset = self.find_dataset('bFit')
+                dataset = self.dataset_find('bFit')
                 for i in range(len(x)): dataset.addPoint([x[i], y[i]])
 
                 markSize = dataset.getMarkerSize()/2
                 colors = self.get_color(dataset)
-                num = self.find_dataset('bFit')
+                num = self.dataset_find('bFit')
 
 
                 for i in range(len(x)):
