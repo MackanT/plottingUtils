@@ -17,6 +17,7 @@ class Plot:
         self.screen_width = width
         self.screen_height = height
 
+        # Text Info
         self.font_size = font_size if isinstance(font_size, int) else 10
         self.font = 'helvetica' if font_type == None else font_type
         self.default_font = tkFont.nametofont('TkDefaultFont')
@@ -29,10 +30,11 @@ class Plot:
         self.fg_color = '#313638'
         self.highlight_colors = ['#EF6461', '#9CD08F', '#E4B363', 
                                  '#E8E9EB', '#5C6B73', '#FFFFFF']
-        # Red, Green, Yellow, Gray, Slate, White
+                                # Red, Green, Yellow, Gray, Slate, White
         self.default_plot_colors = ['#5FBFF9', '#E85F5C', '#B2FFD6', 
                                     '#F9C784', '#343434', '#613F75']
-        self.default_plot_color_counter = 0
+                                    # Blue, Red, Green, Yellow, Black, Purple
+        self.default_plot_color_iterator = 0
 
         # Enabled Parameters
         self.has_title = False
@@ -41,8 +43,9 @@ class Plot:
         self.has_x_label = False
         self.has_y_label = False
         self.has_legend = False
-        self.has_graph = False
         self.has_colorbar = False
+        self.has_animation = False
+        self.has_plot_editor = False
 
         # Graphical Window
         self.root_window = Toplevel()
@@ -54,8 +57,9 @@ class Plot:
 
 
         self.canvas = Canvas(self.root_window, width = self.screen_width, 
-                             height = self.screen_height, bg=self.highlight_colors[5], 
-                             bd = 0, highlightthickness = 0)
+                             height = self.screen_height, bd = 0, 
+                             bg=self.highlight_colors[5], 
+                             highlightthickness = 0)
         self.set_canvas_dimensions()
         self.canvas.place(x = 0, y = 0)
 
@@ -74,11 +78,10 @@ class Plot:
         self.lineApproximations = []
 
         # Animation
-        self.has_animation = False
         self.animation_speed = 1
         self.animation_tags = []
 
-
+        # Keyboard shortcuts
         self.root_window.bind('<Right>', self.right_arrow_key_command)
         self.root_window.bind('<Left>', self.left_arrow_key_command)
         self.root_window.bind('<Up>', self.up_arrow_key_command)
@@ -110,6 +113,7 @@ class Plot:
         self.show_axis_custom = ''
         self.legend_pos = 'NE'
 
+        # Drawn Content
         self.x_axis_numbers = []
         self.y_axis_numbers = []
         self.x_grid_lines = []
@@ -129,7 +133,7 @@ class Plot:
         self.plotted_items = [] # Not in use anymore??? Only currently best fit = broken
         
         # Editing Tools
-        self.add_dataset('bFit')
+        self.dataset_add('bFit')
         self.root_window.bind('<e>', self.__open_plot_editor)
         self.editor_window = Toplevel()
         self.editor_window.title('Plot Editor')
@@ -137,7 +141,6 @@ class Plot:
         self.editor_window.protocol("WM_DELETE_WINDOW", self.__close_editor)
         self.editor_window.withdraw()
         
-        self.has_plot_editor = False
         self.plot_editor_selected_counter = 0
         self.plot_editor_selected_item = None
         self.editor_canvas = Canvas(self.editor_window, width = self.screen_width, 
