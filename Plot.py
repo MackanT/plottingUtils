@@ -364,10 +364,8 @@ class Plot:
 
     # Drag and Drop screen
 
-    def enable_plot_movement(self):
-        """
-        Adds mouse controll over the graph
-        """
+    def mouse_enabled(self):
+        """ Adds mouse controll over the graph """
         self.plot_drag_mouse_clicked = False
         self.plot_drag_mouse_pos = [0, 0]
 
@@ -378,16 +376,19 @@ class Plot:
 
     def mouse_pressed(self, event):
         """ Gets mouse click on plot area """
+
+        # Data Marker
         if self.datapoints_selection == True:
             
             click_x = self.anti_scale_vector(event.x, 'x')
             click_y = self.anti_scale_vector(event.y, 'y')
-            closest_point = self.find_datapoint(click_x, click_y)
+            closest_point = self.datapoint_find(click_x, click_y)
 
             if np.linalg.norm(closest_point - [click_x, click_y]) > 2: return
             self.marked_points.append(closest_point)
-            self.draw_point_marker()
+            self.datapoint_mark()
 
+        # Screen drag
         else:
             if self.plot_editor_selected_counter != 1:
 
@@ -616,13 +617,12 @@ class Plot:
         self.ginput_clicked_postions = []
         self.ginput_click_counter = count - 1
 
+
     # Plot Properties
 
     def set_line_color(self, color, tag):
-        """
-        Adds dataset if it does not exist and then 
-        sets color of specified dataset
-        """
+        """ Adds dataset if it does not exist and then 
+        sets color of specified dataset """
         dataset = self.dataset_find(tag, create='new')
         dataset.set_color(color)
 
