@@ -318,6 +318,51 @@ class Plot:
 
         self.raise_items()        
 
+    def update_plots(self, tag=None):
+    
+        data_list = []
+
+        if tag != None:
+            dataset = self.dataset_find(tag)
+            if dataset != None: data_list.append(dataset)
+        else:
+            for dataset in self.data_series: data_list.append(dataset)
+        for dataset in data_list:
+            if dataset.is_drawn():        
+                point = dataset.get_points()
+                new_x = self.scale_vector(point[0,:], 'x')
+                new_y = self.scale_vector(point[1,:], 'y')
+                if dataset.is_animated(): 
+                    new_index = self.animationScrollbar.get()
+                else: new_index = 0
+                dataset.update_item(new_x, new_y, new_index)
+        
+        for i in range(len(self.plotted_text)): 
+            self.update_text_pos(i)
+        
+        for i in range(len(self.marked_points)):
+            position = self.marked_points[i]
+
+            scaled_x = self.scale_vector(position[0], 'x')
+            scaled_y = self.scale_vector(position[1], 'y')
+
+            box = self.plot.bbox(self.marked_objects[i])
+
+            x = int(scaled_x - (box[2] - box[0]) / 2)
+            y = int(scaled_y - (box[3] - box[1]) / 2)
+            
+            self.plot.moveto(self.marked_objects[i], x, y)
+            self.plot.moveto(self.marked_text[i], x + 14, y)
+
+    def update_text_pos(self, i):
+        """ Moves text item[i] to the correct position """
+        position = self.plotted_text_position[i]
+        scaled_x = self.scale_vector(position[0], 'x') 
+        scaled_y = self.scale_vector(position[1], 'y')
+        self.plot.moveto(self.plotted_text[i], scaled_x, scaled_y)
+
+
+
     # Drag and Drop screen
 
     def enable_plot_movement(self):
@@ -389,7 +434,7 @@ class Plot:
             self.set_x_axis(x_min, x_max, 'drag')
             self.set_y_axis(y_min, y_max, 'drag')
 
-            self.update_plots('all')
+            self.update_plots()
 
     def mouse_released(self, event):
         """
@@ -427,7 +472,7 @@ class Plot:
             self.set_y_axis(self.y_boundary[0] + delta_y + displacement_y, 
                         self.y_boundary[-1] - delta_y + displacement_y, 'drag')
 
-            self.update_plots('all')
+            self.update_plots()
 
 
     # Canvas Buttons
@@ -676,7 +721,7 @@ class Plot:
 
         self.set_x_axis((min_x - delta_x), (max_x + delta_x), 'drag')
         self.set_y_axis((min_y - delta_y), (max_y + delta_y), 'drag')
-        self.update_plots('all')
+        self.update_plots()
 
     def set_labels(self, textx, texty):
         """ Sets/Updates axis labels, Textx = X Label, Texty = Y Label """
@@ -773,7 +818,7 @@ class Plot:
         if self.has_x_grid == True: self.set_grid_lines('x', num_ticks)
         elif self.has_x_grid == False: self.remove_grid_lines('x')
         
-        if update_plot: self.update_plots('all')
+        if update_plot: self.update_plots()
 
     def set_y_axis(self, y_start, y_end, *args):
         """ Sets Y-Axis, Args: Keep = keeps axis, Lock = locks axis, Log = Log Axis,
@@ -837,7 +882,7 @@ class Plot:
         if self.has_y_grid == True: self.set_grid_lines('y', num_ticks)
         elif self.has_y_grid == False: self.remove_grid_lines('y')
 
-        if update_plot: self.update_plots('all')
+        if update_plot: self.update_plots()
 
     def set_axis_numbers(self, num_ticks, order):
         """ Called on to update axis numbers to viually show where data is located """
@@ -1244,39 +1289,8 @@ class Plot:
             self.update_plots('bFit')
     
 
-    def update_plots(self, *args):
-        if args[0] == 'all':
-            for dataset in self.data_series:
-                if dataset.is_drawn() == True:        
-                    point = dataset.get_points()
-                    new_x = self.scale_vector(point[0,:], 'x')
-                    new_y = self.scale_vector(point[1,:], 'y')
-                    if dataset.is_animated() == True: 
-                        new_index = self.animationScrollbar.get()
-                    else: new_index = 0
-                    dataset.update_item(new_x, new_y, new_index)
-            for i in range(len(self.plotted_text)):      
-                self.update_text_pos(i)
-            for i in range(len(self.marked_points)):
-                position = self.marked_points[i]
+  
 
-                scaled_pos = [self.scale_vector(position[0], 'x'), 
-                              self.scale_vector(position[1], 'y')]
-
-                ball = self.plot.bbox(self.marked_objects[i])
-
-                x = int(scaled_pos[0] - (ball[2] - ball[0])/2 )
-                y = int(scaled_pos[1] - (ball[3] - ball[1])/2)
-                
-                self.plot.moveto(self.marked_objects[i], x, y)
-                self.plot.moveto(self.marked_text[i], x + 14, y)
-
-    def update_text_pos(self, i):
-        position = self.plotted_text_position[i]
-        scaled_pos = [self.scale_vector(position[0], 'x'), 
-                      self.scale_vector(position[1], 'y')]
-        self.plot.moveto(self.plotted_text[i], scaled_pos[0], 
-                         scaled_pos[1])
 
     def enable_animator(self, length):
         if self.has_animation == False:
@@ -1290,7 +1304,7 @@ class Plot:
 
     def animate(self, value):
         value = int(value)-1
-        for tag in self.animation_tags: self.find_dataset(tag).move_item(value)
+        for tag in self.animation_tags: self.dataset_find(tag).move_item(value)
 
     def right_arrow_key_command(self, event):
         if self.plot_editor_selected_item != None:
@@ -1489,7 +1503,9 @@ class Plot:
             if self.load_data_legend: 
                 self.add_to_legend(tag, self.load_data_color, dataset.get_symbol())
                 self.reposition_legend(tag=tag)
-        
+
+            self.update_plots(tag=tag)
+
             self.raise_items()
 
     def load_data(self, tag):
@@ -1943,7 +1959,7 @@ class Plot:
             elif self.scale_type[1] == 'log': 
                 self.set_y_axis('keep', 'keep', 'lin')
         self.auto_focus()
-        self.update_plots('all')
+        self.update_plots()
         self.__update_editor_buttons('x_grid', 'x_linlog', 
                                     'y_grid', 'y_linlog')
         
