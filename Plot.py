@@ -53,14 +53,14 @@ class Plot:
         self.root_window.title(window_name)
         self.root_window.geometry('%dx%d'%(self.screen_width, self.screen_height))
         self.root_window.configure(bg=self.bg_color)
-        self.root_window.bind('<Configure>', self.resize_screen)
+        self.root_window.bind('<Configure>', self.update_screen_dimensions)
 
 
         self.canvas = Canvas(self.root_window, width = self.screen_width, 
                              height = self.screen_height, bd = 0, 
                              bg=self.highlight_colors[5], 
                              highlightthickness = 0)
-        self.set_canvas_dimensions()
+        self.update_canvas_dimensions()
         self.canvas.place(x = 0, y = 0)
 
         self.plot = Canvas(self.root_window, width = self.plot_dimensions[0], 
@@ -230,23 +230,24 @@ class Plot:
 
     # Resize Screen    
 
-    def set_canvas_dimensions(self):
-        """
-        Updates Screen Dimensions to allow for screen resizing
-        """
+    def update_canvas_dimensions(self):
+        """ Updates Screen Dimensions to allow for screen resizing """
+        
         self.screen_padding_x = 4*self.font_size
         self.offset_x = 2*self.screen_padding_x
         self.offset_y = 40 + 4*self.font_size
         
-        canvas_width = self.screen_width-2*self.screen_padding_x
-        canvas_height = self.screen_height-self.offset_y
+        canvas_width = self.screen_width - 2*self.screen_padding_x
+        canvas_height = self.screen_height - self.offset_y
 
-        self.canvas_boundary = [self.offset_x, self.offset_y, canvas_width, canvas_height]
-        self.plot_dimensions = [int(self.canvas_boundary[2]-self.canvas_boundary[0]), 
-                                int(self.canvas_boundary[3]-self.canvas_boundary[1])]
+        self.canvas_boundary = [self.offset_x, self.offset_y, 
+                                canvas_width, canvas_height]
+        self.plot_dimensions = (
+                [int(self.canvas_boundary[2] - self.canvas_boundary[0]), 
+                 int(self.canvas_boundary[3] - self.canvas_boundary[1])] )
 
-    def resize_screen(self, event):
-        """ Handles Resize and scaling of entire window """
+    def update_screen_dimensions(self, event):
+        """ Handles rescaling of program window """
 
         screen_size = self.root_window.geometry()
         plus_location = screen_size.find('+')
@@ -258,15 +259,15 @@ class Plot:
         width_delta = screen_width / self.screen_width
         height_delta = screen_height / self.screen_height
 
-        # Screen Only moved, not resized
+        # Screen only moved, not resized
         if width_delta == 1 and height_delta == 1: return
         
         self.screen_width = screen_width
         self.screen_height = screen_height
 
-        self.set_canvas_dimensions()
+        self.update_canvas_dimensions()
         self.canvas.config(width = self.screen_width, 
-                           height=self.screen_height)
+                           height = self.screen_height)
 
         self.plot.config(width = self.plot_dimensions[0] * width_delta, 
                          height = self.plot_dimensions[1] * height_delta)
