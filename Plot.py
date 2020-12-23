@@ -650,21 +650,21 @@ class Plot:
     # Plot Text
 
     def set_title(self, text):
-        """ Sets/Updates title, Text = content """
+        """ Sets/Updates title, Text = 'title' """
         if self.has_title == False:
             self.has_title = True
             self.title = self.canvas.create_text(self.screen_width/2, 
-                        self.font_size, font=self.title_font, anchor=N,
-                        text = text, fill=self.fg_color)
+                        self.font_size, font = self.title_font, anchor = N,
+                        text = text, fill = self.fg_color)
         else: self.canvas.itemconfig(self.title, text = text)         
 
-    def add_text(self, position, text, tag):
+    def set_text(self, position, text, tag):
         """ Sets text on graph: Position = [x, y], Text = content, Tag = reference  """
         self.plotted_text_position.append(position)
         scaled_pos = [self.scale_vector(position[0], 'x'), 
                       self.scale_vector(position[1], 'y')]
-        self.plotted_text.append(self.plot.create_text(scaled_pos, anchor=NW,
-                      text=text, fill=self.fg_color))
+        self.plotted_text.append(self.plot.create_text(scaled_pos, anchor = NW,
+                      text = text, fill = self.fg_color))
         self.plotted_text_tags.append(tag)
 
     def update_text(self, text, tag):
@@ -735,27 +735,29 @@ class Plot:
             p1 = self.canvas_boundary[0] + self.plot_dimensions[0]/2
             p2 = self.canvas_boundary[3] + 5/2*self.font_size
             self.x_label = self.canvas.create_text(p1, p2, text = textx, 
-                                                fill=self.fg_color, anchor=N)
-        elif textx != 'keep': self.canvas.itemconfig(self.x_label, text=textx)
+                                            fill = self.fg_color, anchor = N)
+        elif textx != 'keep': self.canvas.itemconfig(self.x_label, text = textx)
 
         if self.has_y_label == False:
             self.has_y_label = True
             p1 = self.font_size
             p2 = self.canvas_boundary[1] + self.plot_dimensions[1]/2
             self.y_label = self.canvas.create_text(p1, p2, angle=90, 
-                                            text = texty, fill=self.fg_color,
-                                            anchor=N)
-        elif texty != 'keep': self.canvas.itemconfig(self.y_label, text=texty)
+                                            text = texty, fill = self.fg_color,
+                                            anchor = N)
+        elif texty != 'keep': self.canvas.itemconfig(self.y_label, text = texty)
 
     def set_zero(self, start, end, order):
-        """
-        Finds the position of 0 used by linear graphs as an additive factor
-        """
+        """ Finds the position of 0 used by linear graphs as an additive factor """
 
-        if order == 'x': plot_dim = self.plot_dimensions[0]; numerator = start
-        elif order == 'y': plot_dim = self.plot_dimensions[1]; numerator = end
-        common_term = plot_dim/(start - end)
-        abs_term = abs(numerator)/(abs(start) + abs(end))
+        if order == 'x': 
+            plot_dim = self.plot_dimensions[0] 
+            numerator = start
+        elif order == 'y': 
+            plot_dim = self.plot_dimensions[1] 
+            numerator = end
+        common_term = plot_dim / (start - end)
+        abs_term = abs(numerator) / (abs(start) + abs(end))
 
         if order == 'x':
             if end < 0: self.x0 = common_term * end
@@ -903,13 +905,12 @@ class Plot:
                        self.canvas_boundary[3] + self.font_size/2]
                 if self.show_axis_custom == 'time':
                     hour = int(self.x_boundary[i]%24)
-                    minute = int(60*(self.x_boundary[i]%24 
-                              - hour))
+                    minute = int(60*(self.x_boundary[i]%24 - hour))
                     tex = str(hour).zfill(2) + ':' + str(minute).zfill(2)
                 else: tex = self.scale_unit_style.format(self.x_boundary[i])
                 self.x_axis_numbers.append(self.canvas.create_text(pos, 
-                                            anchor=N, fill=self.fg_color, 
-                                            text=tex))
+                                            anchor = N, fill = self.fg_color, 
+                                            text = tex))
         elif order == 'y':
             if self.show_axis_custom == 'blank':
                 for item in self.y_axis_numbers: self.canvas.delete(item)
