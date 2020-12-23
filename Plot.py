@@ -203,7 +203,8 @@ class Plot:
         it does not exist
         """
 
-        for item in self.data_series: if item.get_tag() == tag: return item
+        for item in self.data_series: 
+            if item.get_tag() == tag: return item
         
         if create == 'new':
             dataset = self.dataset_add(tag)
@@ -213,17 +214,12 @@ class Plot:
     # Index Operations
 
     def remove_drawn_items(self, search_list):
-        """
-        Clears plotted content in search_list
-        """
+        """ Clears plotted content in search_list """
         for item in search_list: self.canvas.delete(int(item))            
         search_list.clear()
 
-
     def find_tag_number(self, tag, search_list):
-        """
-        Returns index of requested tag in its appropriate list
-        """
+        """ Returns index of requested tag in its appropriate list """
         for i in range(len(search_list)):
             if search_list[i] == tag: return i
 
@@ -320,7 +316,7 @@ class Plot:
         self.raise_items()        
 
     def update_plots(self, tag=None):
-    
+        """ Redraws plotted data """
         data_list = []
 
         if tag != None:
@@ -328,6 +324,7 @@ class Plot:
             if dataset != None: data_list.append(dataset)
         else:
             for dataset in self.data_series: data_list.append(dataset)
+
         for dataset in data_list:
             if dataset.is_drawn():        
                 point = dataset.get_points()
@@ -357,6 +354,7 @@ class Plot:
 
     def update_text_pos(self, i):
         """ Moves text item[i] to the correct position """
+
         position = self.plotted_text_position[i]
         scaled_x = self.scale_vector(position[0], 'x') 
         scaled_y = self.scale_vector(position[1], 'y')
@@ -415,7 +413,6 @@ class Plot:
                 x_max = self.x_boundary[-1] + delta_x
                 self.plot_drag_mouse_pos[0] = event.x
             elif self.scale_type[0] == 'log':
-
                 delta_x = self.plot_drag_mouse_pos[0] - self.anti_scale_vector(event.x, 'x')
                 x_min = self.x_boundary[0] + delta_x
                 x_max = self.x_boundary[-1] + delta_x
@@ -427,7 +424,6 @@ class Plot:
                 y_max = self.y_boundary[-1] + delta_y
                 self.plot_drag_mouse_pos[1] = event.y
             elif self.scale_type[1] == 'log':
-
                 delta_y = self.plot_drag_mouse_pos[1] - self.anti_scale_vector(event.y, 'y')
                 y_min = self.y_boundary[0] + delta_y
                 y_max = self.y_boundary[-1] + delta_y
@@ -645,8 +641,9 @@ class Plot:
         sets size of specified datasets scatter points
         """
 
-        dataset = self.dataset_find(tag, create='new')
+        dataset = self.dataset_find(tag, create = 'new')
         dataset.set_dot_size(size)
+
 
     # Plot Text
 
@@ -951,7 +948,7 @@ class Plot:
             elif name == '': self.__scale_unit_iter = 3
             else: return
 
-            self.change_unit_scale()
+            self.set_axis_label_type()
             return
             
 
