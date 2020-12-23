@@ -1245,11 +1245,10 @@ class Plot:
                                   self.scale_vector(y, 'y'))
 
         if dataset.is_colored() == False:
-            color = self.default_plot_colors[self.default_plot_color_counter]
-            dataset.set_color(color)
-            self.next_plot_color()
+            dataset.set_color(self.next_plot_color())
         
         dataset.draw(plot_range)
+        self.update_plots(tag)
 
     def find_data_marker(self, marker):
         
@@ -1381,8 +1380,10 @@ class Plot:
     # Colors
 
     def next_plot_color(self): 
-        self.default_plot_color_counter +=1
-        self.default_plot_color_counter %= len(self.default_plot_colors)
+        cur_color = self.default_plot_colors[self.default_plot_color_iterator]
+        self.default_plot_color_iterator +=1
+        self.default_plot_color_iterator %= len(self.default_plot_colors)
+        return cur_color
 
     def get_color(self, dataset):
         colors = dataset.get_color()
@@ -1754,7 +1755,7 @@ class Plot:
                                 image = self.button_image_data_scatter)
         self.load_data_type_button.place(x=450,y=74, anchor=NW)
 
-        index = self.default_plot_color_counter
+        index = self.default_plot_color_iterator
         self.load_data_color = self.default_plot_colors[index]
         self.load_data_color_button = Button(self.editor_canvas, width = 25, 
                                 height = 25, command=self.__change_plot_color, 
@@ -1932,9 +1933,7 @@ class Plot:
         
     def __change_plot_color(self):
         
-        index = self.default_plot_color_counter
-        self.next_plot_color()
-        self.load_data_color = self.default_plot_colors[index]
+        self.load_data_color = self.next_plot_color()
         self.load_data_color_button.config(bg = self.load_data_color)
 
     def __change_plot_legend(self):
