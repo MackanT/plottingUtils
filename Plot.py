@@ -61,6 +61,8 @@ class Plot:
 
         # Graphical Window
         self.root_window = Toplevel()
+        self.root_image = self.get_image('home')
+        self.root_window.iconphoto(False, self.root_image)
         window_name = name if name != None else 'Figure'
         self.root_window.title(window_name)
         self.root_window.geometry('%dx%d'%(self.screen_width, self.screen_height))
@@ -100,15 +102,6 @@ class Plot:
         self.root_window.bind('<Down>', self.down_arrow_key_command)
         self.root_window.bind('<Delete>', self.delete_key_command)
         self.root_window.bind('<Escape>', self.escape_key_command)
-
-        # Save Locations
-        self.file_save_location = os.path.dirname(os.path.realpath(__file__)) \
-                + '\\saveData'
-        if not os.path.exists(self.file_save_location): 
-                os.makedirs(self.file_save_location)
-
-        self.file_image_location = os.path.dirname(os.path.realpath(__file__)) \
-                + '\\images'
 
 
         """
@@ -336,7 +329,6 @@ class Plot:
             if dataset != None: data_list.append(dataset)
         else:
             for dataset in self.data_series: data_list.append(dataset)
-
         for dataset in data_list:
             if dataset.is_drawn():        
                 point = dataset.get_points()
@@ -1473,6 +1465,11 @@ class Plot:
         if regexp.search(color): return True
         return False
 
+    def get_image(self, file):
+
+        image_file = self.file_image_location + '\\' + file + '.png'
+        return ImageTk.PhotoImage(Image.open(image_file)) 
+
     # Is this even in use???
     def clear_plot_data(self, tag):
         plotPos = self.dataset_find(tag)
@@ -1835,39 +1832,25 @@ class Plot:
 
     def __load_button_images(self):
 
-        image_file = self.file_image_location + '\\setting_on.png'
-        self.button_image_on = ImageTk.PhotoImage(Image.open(image_file)) 
-        image_file = self.file_image_location + '\\setting_off.png'
-        self.button_image_off = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.button_image_on = self.get_image('setting_on')
+        self.button_image_off = self.get_image('setting_off')
 
-        image_file = self.file_image_location + '\\save.png'
-        self.button_image_save_data = ImageTk.PhotoImage(Image.open(image_file))
-        image_file = self.file_image_location + '\\load.png'
-        self.button_image_load_data = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.button_image_save_data = self.get_image('save')
+        self.button_image_load_data = self.get_image('load')
 
-        image_file = self.file_image_location + '\\scatter.png'
-        self.button_image_data_scatter = ImageTk.PhotoImage(Image.open(image_file)) 
-        image_file = self.file_image_location + '\\line.png'
-        self.button_image_data_line = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.button_image_data_scatter = self.get_image('scatter')
+        self.button_image_data_line = self.get_image('line')
 
-        image_file = self.file_image_location + '\\legend_on.png'
-        self.button_image_legend_on = ImageTk.PhotoImage(Image.open(image_file)) 
-        image_file = self.file_image_location + '\\legend_off.png'
-        self.button_image_legend_off = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.button_image_legend_on = self.get_image('legend_on')
+        self.button_image_legend_off = self.get_image('legend_off')
 
-        image_file = self.file_image_location + '\\lin.png'
-        self.button_image_lin = ImageTk.PhotoImage(Image.open(image_file)) 
-        image_file = self.file_image_location + '\\log.png'
-        self.button_image_log = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.button_image_lin = self.get_image('lin')
+        self.button_image_log = self.get_image('log')
 
-        image_file = self.file_image_location + '\\item_select.png'
-        self.button_image_item_sel = ImageTk.PhotoImage(Image.open(image_file)) 
-        image_file = self.file_image_location + '\\item_selected.png'
-        self.button_image_item_selected = ImageTk.PhotoImage(Image.open(image_file)) 
-        image_file = self.file_image_location + '\\item_deselect.png'
-        self.button_image_item_desel = ImageTk.PhotoImage(Image.open(image_file)) 
-        image_file = self.file_image_location + '\\color.png'
-        self.button_image_color = ImageTk.PhotoImage(Image.open(image_file)) 
+        self.button_image_item_sel = self.get_image('item_select')
+        self.button_image_item_selected = self.get_image('item_selected')
+        self.button_image_item_desel = self.get_image('item_deselect')
+        self.button_image_color = self.get_image('color')
 
     def __update_editor_buttons(self, *args):
         for button in args:
