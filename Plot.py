@@ -339,10 +339,18 @@ class Plot:
                 else: new_index = 0
                 dataset.update_item(new_x, new_y, new_index)
         
-        for i in range(len(self.plotted_text)): 
-            self.update_text_pos(i)
-        
-        for i in range(len(self.marked_points)):
+        for i in range(len(self.plotted_text)): self.update_text_pos(i)
+        for i in range(len(self.marked_points)): self.update_data_marker(i)
+
+    def update_text_pos(self, i):
+        """ Moves text item[i] to the correct position """
+
+        position = self.plotted_text_position[i]
+        scaled_x = self.scale_vector(position[0], 'x') 
+        scaled_y = self.scale_vector(position[1], 'y')
+        self.plot.moveto(self.plotted_text[i], scaled_x, scaled_y)
+
+    def update_data_marker(self, i):
             position = self.marked_points[i]
 
             scaled_x = self.scale_vector(position[0], 'x')
@@ -354,17 +362,7 @@ class Plot:
             y = int(scaled_y - (box[3] - box[1]) / 2)
             
             self.plot.moveto(self.marked_objects[i], x, y)
-            self.plot.moveto(self.marked_text[i], x + 14, y)
-
-    def update_text_pos(self, i):
-        """ Moves text item[i] to the correct position """
-
-        position = self.plotted_text_position[i]
-        scaled_x = self.scale_vector(position[0], 'x') 
-        scaled_y = self.scale_vector(position[1], 'y')
-        self.plot.moveto(self.plotted_text[i], scaled_x, scaled_y)
-
-
+            self.plot.moveto(self.marked_text[i], x + 18, y)
 
     # Drag and Drop screen
 
@@ -585,19 +583,15 @@ class Plot:
     def datapoint_mark(self):
 
         position = self.marked_points[-1]
-        scaled_x = self.scale_vector(position[0], 'x')
-        scaled_y = self.scale_vector(position[1], 'y')
         
-        self.marked_objects.append(self.plot.create_text(scaled_x, 
-                                   scaled_y, text = '\u20dd', 
+        self.marked_objects.append(self.plot.create_text(0, 0, text = '\u20dd', 
                                    anchor = CENTER, fill = self.fg_color))
 
         content = ('({:.2f}'.format(position[0]) 
                 + ', {:.2f})'.format(position[1]))
-
-        self.marked_text.append(self.plot.create_text(
-                    [scaled_x + 10, scaled_y], fill = self.fg_color, 
-                    anchor = W, text = content))
+        self.marked_text.append(self.plot.create_text(0, 0, 
+                        fill = self.fg_color, anchor = W, text = content))
+        self.update_data_marker(-1)
 
 
     # Ginput (Will be rewritten... will not clean up)
@@ -926,16 +920,13 @@ class Plot:
                        self.canvas_boundary[3] - i*step_size]
                 tex = self.scale_unit_style.format(self.y_boundary[i])
                 self.y_axis_numbers.append(self.canvas.create_text(pos, 
-                                            anchor=E, fill=self.fg_color, 
-                                            text=tex))
+                                            anchor = E, fill = self.fg_color, 
+                                            text = tex))
 
     def log_scale(self, order):
-        """
-        Called upon to estimate a good plot focus for log graphs
-        Estimates by rounding data to nearest power of 10
-        """
+        """ Find magnitude for auto-setting logarithmic scale """
     
-        data_low, data_high = self.auto_focus(source=order)
+        data_low, data_high = self.auto_focus(source = order)
         power_low = math.floor(math.log10(data_low))
         power_high = math.ceil(math.log10(data_high))
         
