@@ -1,6 +1,6 @@
 from tkinter import *
 import tkinter.font as tkFont
-from PIL import ImageTk,Image
+from PIL import ImageTk, Image
 from DataSeries import DataSeries
 import math
 import numpy as np
@@ -11,11 +11,23 @@ from datetime import datetime
 class Plot:
 
 
-    def __init__(self, width, height, name=None, font_size=None, font_type=None):
+    def __init__(self, width=None, height=None, name=None, 
+                                   font_size=None, font_type=None):
         
         # Dimensions
-        self.screen_width = width
-        self.screen_height = height
+        self.screen_width = width if width != None else 1000
+        self.screen_height = height if height != None else 800
+
+        
+        # Save Locations
+        self.file_save_location = os.path.dirname(os.path.realpath(__file__)) \
+                + '\\saveData'
+        if not os.path.exists(self.file_save_location): 
+                os.makedirs(self.file_save_location)
+
+        self.file_image_location = os.path.dirname(os.path.realpath(__file__)) \
+                + '\\images'
+
 
         # Text Info
         self.font_size = font_size if isinstance(font_size, int) else 10

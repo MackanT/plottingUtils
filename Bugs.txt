@@ -3,20 +3,14 @@
 
 better format axis numbers, different number of decimal points
 
-border around plot editor, remove plz
-
 drag screen in log, change #pixel to log value
 zoom in log scale
 log scale drag to smaller x z 0.1
 
 log_scale() körs 2x ggr per click
 
-loading in data and auto-focus causes them to move slighlty first click
-
 octave scale (1,2,4,8,16 etc. bas2)
 
-changeing labals/title names stops them from auto setting-center
+opening program not auto-fix visual glitch
 
-data point select, rewrite with text inst. of oval.
-
-comic sans!
+removing dataset not autoset/fix legend row 181
