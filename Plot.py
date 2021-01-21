@@ -61,13 +61,14 @@ class Plot:
 
         # Graphical Window
         self.root_window = Toplevel()
-        self.root_image = self.get_image('home')
+        self.root_image = self.get_image('home_screen')
         self.root_window.iconphoto(False, self.root_image)
-        window_name = name if name != None else 'Figure'
+        window_name = name if name != None else 'PlottingUtils - Figure'
         self.root_window.title(window_name)
         self.root_window.geometry('%dx%d'%(self.screen_width, self.screen_height))
         self.root_window.configure(bg=self.bg_color)
         self.root_window.bind('<Configure>', self.update_screen_dimensions)
+        self.root_window.protocol("WM_DELETE_WINDOW", self.__close_program)
 
 
         self.canvas = Canvas(self.root_window, width = self.screen_width, 
@@ -162,6 +163,13 @@ class Plot:
         self.marked_points = []
         self.marked_text = []
         self.marked_objects = []
+
+    # General
+
+    def __close_program(self):
+        self.root_window.withdraw()
+        sys.exit()
+
 
     # Datasets
 
