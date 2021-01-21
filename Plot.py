@@ -10,15 +10,9 @@ from datetime import datetime
 
 class Plot:
 
-
     def __init__(self, width=None, height=None, name=None, 
-                                   font_size=None, font_type=None):
-        
-        # Dimensions
-        self.screen_width = width if width != None else 1000
-        self.screen_height = height if height != None else 800
+                       font_size=None, font_type=None, debug=None):
 
-        
         # Save Locations
         self.file_save_location = os.path.dirname(os.path.realpath(__file__)) \
                 + '\\saveData'
@@ -29,6 +23,31 @@ class Plot:
                 + '\\images'
 
 
+        # Debugging
+        self.debug = False
+        if self.debug != None:
+            self.debug = True
+
+            self.file_debug_location = os.path.dirname(os.path.realpath(__file__)) \
+                + '\\logData'
+            if not os.path.exists(self.file_debug_location): 
+                os.makedirs(self.file_debug_location)
+
+            cur_time = str(datetime.now().time())[0:8]
+            cur_time = cur_time.replace(':', '_')
+
+            self.file_debug = self.file_debug_location + '\\' + 'log_' + cur_time + '.txt'
+            self.debug_log('Debug log for %s \n' %cur_time)
+            self.debug_log('Starting PlottingUtils in debugging mode')
+            self.debug_log('------------------------------------------')
+            print('\n Running PlottingUtils in debugging mode - see generated log for more info \n')
+
+        
+        # Dimensions
+        self.screen_width = width if width != None else 1000
+        self.screen_height = height if height != None else 800
+
+        
         # Text Info
         self.font_size = font_size if isinstance(font_size, int) else 10
         self.font = 'helvetica' if font_type == None else font_type
@@ -164,6 +183,13 @@ class Plot:
         self.marked_text = []
         self.marked_objects = []
 
+    # Debugging
+
+    def debug_log(self, text_input):
+
+        with open(self.file_debug, 'a') as save_file:
+            save_file.write(text_input + '\n')
+
     # General
 
     def __close_program(self):
@@ -180,6 +206,8 @@ class Plot:
         for each unique plotted dataset
         """
 
+        if self.debug == True: self.debug_log('dataset_add %s' %tag)
+
         if self.dataset_find(tag) != None: return
         else: self.data_series.append(DataSeries(tag, self.plot))
 
@@ -187,6 +215,9 @@ class Plot:
         """
         Removes an existing datasets from memory and plotted view
         """
+
+        if self.debug == True: self.debug_log('dataset_remove %s' %tag)
+
         for i in range(len(self.data_series)):
             if self.data_series[i].get_tag() == tag:
                 dataset = self.data_series[i]
@@ -201,6 +232,9 @@ class Plot:
         Hides/Unhides dataset from plotted view but keeps it in memory
         state = hidden, shown
         """
+
+        if self.debug == True: self.debug_log('dataset_state %s, %s' %(state, tag))
+
         dataset = self.dataset_find(tag)
         if dataset != None: 
             if state == 'hidden': dataset.undraw_item(0)
@@ -216,6 +250,8 @@ class Plot:
         it does not exist
         """
 
+        if self.debug == True: self.debug_log('dataset_find %s, %s' %(tag, create))
+
         for item in self.data_series: 
             if item.get_tag() == tag: return item
         
@@ -228,11 +264,17 @@ class Plot:
 
     def remove_drawn_items(self, search_list):
         """ Clears plotted content in search_list """
+
+        if self.debug == True: self.debug_log('remove_drawn_items %s' %search_list)
+
         for item in search_list: self.canvas.delete(int(item))            
         search_list.clear()
 
     def find_tag_number(self, tag, search_list):
         """ Returns index of requested tag in its appropriate list """
+        
+        if self.debug == True: self.debug_log('find_tag_number %s, %s' %(tag, search_list))
+
         for i in range(len(search_list)):
             if search_list[i] == tag: return i
 
@@ -241,6 +283,8 @@ class Plot:
 
     def update_canvas_dimensions(self):
         """ Updates Screen Dimensions to allow for screen resizing """
+
+        if self.debug == True: self.debug_log('update_canvas_dimensions')
         
         self.screen_padding_x = 4*self.font_size
         self.offset_x = 2*self.screen_padding_x
@@ -257,6 +301,8 @@ class Plot:
 
     def update_screen_dimensions(self, event):
         """ Handles rescaling of program window """
+
+        if self.debug == True: self.debug_log('update_screen_dimensions %s' %event)
 
         screen_size = self.root_window.geometry()
         plus_location = screen_size.find('+')
@@ -330,6 +376,9 @@ class Plot:
 
     def update_plots(self, tag=None):
         """ Redraws plotted data """
+        
+        if self.debug == True: self.debug_log('update_plots %s' %tag)
+
         data_list = []
 
         if tag != None:
@@ -353,28 +402,36 @@ class Plot:
     def update_text_pos(self, i):
         """ Moves text item[i] to the correct position """
 
+        if self.debug == True: self.debug_log('update_text_pos %s' %i)
+
         position = self.plotted_text_position[i]
         scaled_x = self.scale_vector(position[0], 'x') 
         scaled_y = self.scale_vector(position[1], 'y')
         self.plot.moveto(self.plotted_text[i], scaled_x, scaled_y)
 
     def update_data_marker(self, i):
-            position = self.marked_points[i]
 
-            scaled_x = self.scale_vector(position[0], 'x')
-            scaled_y = self.scale_vector(position[1], 'y')
+        if self.debug == True: self.debug_log('update_data_marker %s' %i)
 
-            box = self.plot.bbox(self.marked_objects[i])
+        position = self.marked_points[i]
 
-            x = int(scaled_x - (box[2] - box[0]) / 2)
-            y = int(scaled_y - (box[3] - box[1]) / 2)
-            
-            self.plot.moveto(self.marked_objects[i], x, y)
-            self.plot.moveto(self.marked_text[i], x + 18, y)
+        scaled_x = self.scale_vector(position[0], 'x')
+        scaled_y = self.scale_vector(position[1], 'y')
+
+        box = self.plot.bbox(self.marked_objects[i])
+
+        x = int(scaled_x - (box[2] - box[0]) / 2)
+        y = int(scaled_y - (box[3] - box[1]) / 2)
+        
+        self.plot.moveto(self.marked_objects[i], x, y)
+        self.plot.moveto(self.marked_text[i], x + 18, y)
 
     # Drag and Drop screen
 
     def mouse_enabled(self):
+
+        if self.debug == True: self.debug_log('mouse_enabled')
+
         """ Adds mouse controll over the graph """
         self.plot_drag_mouse_clicked = False
         self.plot_drag_mouse_pos = [0, 0]
@@ -386,6 +443,8 @@ class Plot:
 
     def mouse_pressed(self, event):
         """ Gets mouse click on plot area """
+
+        if self.debug == True: self.debug_log('mouse_pressed %s' %event)
 
         # Data Marker
         if self.datapoints_selection == True:
@@ -414,6 +473,8 @@ class Plot:
 
     def mouse_dragged(self, event):
         """ Allows for real time moving of the graphed data """
+
+        if self.debug == True: self.debug_log('mouse_dragged %s' %event)
 
         if self.plot_drag_mouse_clicked == True:
 
@@ -449,6 +510,8 @@ class Plot:
         Disables graph movement and does item placement
         """
 
+        if self.debug == True: self.debug_log('mouse_released %s' %event)
+
         if self.plot_drag_mouse_clicked == True:
             self.plot_drag_mouse_clicked = False
 
@@ -456,6 +519,8 @@ class Plot:
         """
         Zoom in and out on graph
         """
+
+        if self.debug == True: self.debug_log('mouse_scrolled %s' %event)
 
         if self.plot_editor_selected_counter != 1:
 
@@ -488,6 +553,8 @@ class Plot:
     def __canvas_button_home_add(self):
         """ Creates auto focus button """
 
+        if self.debug == True: self.debug_log('__canvas_button_home_add')
+
         image_file = self.file_image_location + '\\home.png'
         self.button_image_auto_home = (
                                 ImageTk.PhotoImage(Image.open(image_file)) )
@@ -500,6 +567,8 @@ class Plot:
     def __canvas_button_axis_add(self):
         """Creates change axis label type button """
         
+        if self.debug == True: self.debug_log('__canvas_button_axis_add')
+
         self.__scale_unit_iter = 0
         
         image_file = self.file_image_location + '\\scientific.png'
@@ -514,6 +583,8 @@ class Plot:
     def set_axis_label_type(self):
         """ Keeps track of which text format are used on the axis numbering
         Sets and updates graph accordingly """
+
+        if self.debug == True: self.debug_log('set_axis_label_type')
         
         self.__scale_unit_iter += 1
         self.__scale_unit_iter %= 5
@@ -550,6 +621,8 @@ class Plot:
     def __canvas_button_select_add(self):
         """ Creates data selection button """
 
+        if self.debug == True: self.debug_log('__canvas_button_select_add')
+
         image_file = self.file_image_location + '\\select.png'
         self.button_image_select_point = (
                                 ImageTk.PhotoImage(Image.open(image_file)) )
@@ -562,6 +635,9 @@ class Plot:
 
     def __canvas_button_select_update(self):
         """ Updates '__canvas_button_select_add' button """
+
+        if self.debug == True: self.debug_log('__canvas_button_home_update')
+
         if self.datapoints_selection == False:
             self.datapoint_selector.config(bg = self.highlight_colors[2])
             self.datapoints_selection = True
@@ -570,8 +646,10 @@ class Plot:
             self.datapoints_selection = False
 
     
-    
+
     def datapoint_find(self, x, y):
+        
+        if self.debug == True: self.debug_log('datapoint_fing %s, %s' %(x, y))
 
         shortest_distance = math.inf
         for i in range(1, len(self.data_series)):
@@ -589,6 +667,8 @@ class Plot:
         return best_point
 
     def datapoint_mark(self):
+
+        if self.debug == True: self.debug_log('datapoint_mark')
 
         position = self.marked_points[-1]
         
@@ -631,6 +711,9 @@ class Plot:
     def set_line_color(self, color, tag):
         """ Adds dataset if it does not exist and then 
         sets color of specified dataset """
+
+        if self.debug == True: self.debug_log('set_line_color %s, %s' %(color, tag))
+
         dataset = self.dataset_find(tag, create='new')
         dataset.set_color(color)
 
@@ -639,6 +722,8 @@ class Plot:
         Adds dataset if it does not exist and then 
         sets width of specified dataset lines
         """
+
+        if self.debug == True: self.debug_log('set_line_width %s, %s' %(lineWidth, tag))
 
         dataset = self.dataset_find(tag, create='new')
         dataset.set_line_width(lineWidth)
@@ -649,6 +734,8 @@ class Plot:
         sets size of specified datasets scatter points
         """
 
+        if self.debug == True: self.debug_log('set_dot_size %s, %s' %(size, tag))
+
         dataset = self.dataset_find(tag, create = 'new')
         dataset.set_dot_size(size)
 
@@ -657,6 +744,9 @@ class Plot:
 
     def set_title(self, text):
         """ Sets/Updates title, Text = 'title' """
+
+        if self.debug == True: self.debug_log('set_title %s' %text)
+
         if self.has_title == False:
             self.has_title = True
             self.title = self.canvas.create_text(self.screen_width/2, 
@@ -666,6 +756,9 @@ class Plot:
 
     def set_text(self, position, text, tag):
         """ Sets text on graph: Position = [x, y], Text = content, Tag = reference  """
+
+        if self.debug == True: self.debug_log('set_text %s, %s, %s' %(position, text, tag))
+
         self.plotted_text_position.append(position)
         scaled_pos = [self.scale_vector(position[0], 'x'), 
                       self.scale_vector(position[1], 'y')]
@@ -675,6 +768,9 @@ class Plot:
 
     def update_text(self, text, tag):
         """ Updates existing text on graph, Text = content, Tag = reference """
+
+        if self.debug == True: self.debug_log('update_text %s, %s' %(text, tag))
+
         text_item = self.find_tag_number(tag, self.plotted_text_tags)
         if text_item != None:
             self.plot.itemconfig(self.plotted_text[text_item], text = text)
@@ -682,6 +778,9 @@ class Plot:
 
     def find_text(self, content):
         """ Returns index of text item, Content = widget to search"""
+
+        if self.debug == True: self.debug_log('find_text %s' %(content))
+
         text = self.plot.itemcget(content, 'text')
         for i in range(len(self.plotted_text)):
             if self.plot.itemcget(self.plotted_text[i], 'text') == text:
@@ -694,6 +793,7 @@ class Plot:
         """ Estimates a good x and y scale for the plotted data by 
         finding the min/max x/y for all data """
 
+        if self.debug == True: self.debug_log('auto_focus %s' %source)
 
         all_values = False if source == 'scale_x' or source == 'scale_y' else True
         for i in range(1, len(self.data_series)):
@@ -736,6 +836,9 @@ class Plot:
 
     def set_labels(self, textx, texty):
         """ Sets/Updates axis labels, Textx = X Label, Texty = Y Label """
+
+        if self.debug == True: self.debug_log('set_labels %s, %s' %(textx, texty))
+
         if self.has_x_label == False:
             self.has_x_label = True
             p1 = self.canvas_boundary[0] + self.plot_dimensions[0]/2
@@ -755,6 +858,8 @@ class Plot:
 
     def set_zero(self, start, end, order):
         """ Finds the position of 0 used by linear graphs as an additive factor """
+
+        if self.debug == True: self.debug_log('set_zero %s, %s, %s' %(start, end, order))
 
         if order == 'x': 
             plot_dim = self.plot_dimensions[0] 
@@ -778,6 +883,8 @@ class Plot:
         """ Sets X-Axis, Args: Keep = keeps axis, Log = Log Axis,
         Lin = Lin Axis, Show = show gridlines, Hidden = hide gridlines """
         
+        if self.debug == True: self.debug_log('set_x_axis %s, %s, %s' %(x_start, x_end, args))
+
         update_plot = True
 
         if x_start == 'keep': x_start = self.x_boundary[0]
@@ -836,6 +943,8 @@ class Plot:
     def set_y_axis(self, y_start, y_end, *args):
         """ Sets Y-Axis, Args: Keep = keeps axis, Lock = locks axis, Log = Log Axis,
         Lin = Lin Axis, Show = show gridlines, Hidden = hide gridlines """
+
+        if self.debug == True: self.debug_log('set_y_axis %s, %s, %s' %(y_start, y_end, args))
 
         update_plot = True
         auto_focus = False
@@ -900,6 +1009,8 @@ class Plot:
     def set_axis_numbers(self, num_ticks, order):
         """ Called on to update axis numbers to viually show where data is located """
 
+        if self.debug == True: self.debug_log('set_axis_numbers %s, %s' %(num_ticks, order))
+
         if order == 'x':
             if self.show_axis_custom == 'blank':
                 for item in self.x_axis_numbers: self.canvas.delete(item)
@@ -933,7 +1044,9 @@ class Plot:
 
     def log_scale(self, order):
         """ Find magnitude for auto-setting logarithmic scale """
-    
+
+        if self.debug == True: self.debug_log('log_scale %s' %(order))
+
         data_low, data_high = self.auto_focus(source = order)
         power_low = math.floor(math.log10(data_low))
         power_high = math.ceil(math.log10(data_high))
@@ -945,6 +1058,9 @@ class Plot:
         Automatically Sets scale type:
         Options: digit, e, %, time, ''
         """
+        
+        if self.debug == True: self.debug_log('set_axis_scale_type %s' %(args))
+
         for name in args:
 
             if name == 'digit': self.__scale_unit_iter = 4
@@ -964,6 +1080,9 @@ class Plot:
         """
         Adds x gridlines to plot
         """
+
+        if self.debug == True: self.debug_log('__grid_x %s' %(num_ticks))
+
         self.remove_grid_lines('x')
         self.has_x_grid = True
         if self.scale_type[0] == 'lin':    
@@ -983,6 +1102,8 @@ class Plot:
         Adds y gridlines to plot
         """
 
+        if self.debug == True: self.debug_log('__grid_y %s' %(num_ticks))
+
         self.remove_grid_lines('y')
         self.has_y_grid = True
         if self.scale_type[1] == 'lin':
@@ -1000,6 +1121,8 @@ class Plot:
     def set_grid_lines(self, order, num_ticks):
         """ Sets requested gridlines """
         
+        if self.debug == True: self.debug_log('set_grid_lines %s, %s' %(order, num_ticks))
+
         if not isinstance(num_ticks, int):
             if not num_ticks.isnumeric(): return
             else: num_ticks = int(num_ticks)
@@ -1027,6 +1150,9 @@ class Plot:
         """
         Removes requested gridlines
         """
+
+        if self.debug == True: self.debug_log('remove_grid_lines %s' %(order))
+
         if order == 'x': 
             for item in self.x_grid_lines:
                 self.plot.delete(item)
@@ -1042,6 +1168,8 @@ class Plot:
 
     def set_legend(self, pos=None):
         """ Specify position with pos= NW, NE, SW, SE"""
+
+        if self.debug == True: self.debug_log('set_legend %s' %(pos))
 
         self.has_legend = True
         if   pos == None: self.legend_pos = 'NE'
@@ -1062,6 +1190,8 @@ class Plot:
 
     def update_legend_offsets(self, tag=None):
 
+        if self.debug == True: self.debug_log('update_legened_offsets %s' %(tag))
+
         names = []
         for dataset in self.data_series:
             if dataset.get_legend() != None: 
@@ -1079,6 +1209,8 @@ class Plot:
 
     def reposition_legend(self, tag=None):
         
+        if self.debug == True: self.debug_log('reposition_legent %s' %(tag))
+
         self.update_legend_offsets(tag)
         for i in range(len(self.legend_content)):
             self.plot.moveto(self.legend_content[i], self.legend_x_offset, 
@@ -1091,9 +1223,11 @@ class Plot:
 
     def add_to_legend(self, name, color, symbol):
 
+        if self.debug == True: self.debug_log('add_to_legend %s, %s, %s' %(name, color, symbol[1:]))
+
         i = len(self.legend_content)
 
-        # print(color)
+        # self.debug_log(color)
 
         p1 = self.legend_x_offset
         p2 = self.legend_y_offset + 2*i*self.font_size
@@ -1106,6 +1240,8 @@ class Plot:
 
     def update_legend(self, tag, text=None, color=None, symbol=None):
         
+        if self.debug == True: self.debug_log('update_legend %s, %s, %s, %s' %(tag, text, color, symbol))
+
         dataset = self.dataset_find(tag)
         if dataset == None: return
 
@@ -1121,12 +1257,18 @@ class Plot:
 
     def find_legend(self, item=None, text=None):
         """ Returns index of legend item, Content = widget to search"""
+
+        if self.debug == True: self.debug_log('find_legend %s, %s' %(item, text))
+
         if text == None: text = self.plot.itemcget(item, 'text')
         for i in range(len(self.legend_content)):
             if self.plot.itemcget(self.legend_content[i], 'text') == text:
                 return i    
 
     def switch_legend_index(self, index, order):
+
+        if self.debug == True: self.debug_log('switch_legend_index %s, %s' %(index, order))
+
         item_change = self.plot.coords(self.legend_content[index])[1]
         marker_change = self.plot.coords(self.legend_markers[index])[1]
         item_move = self.plot.coords(self.legend_content[index+order])[1]
@@ -1147,6 +1289,8 @@ class Plot:
     # Data validation for plotted objects
 
     def scale_vector(self, data, *args):
+
+        if self.debug == True: self.debug_log('scale_vector %s, %s' %(data, args))
         
         for name in args:
             if name == 'window': 
@@ -1194,6 +1338,8 @@ class Plot:
             
     def anti_scale_vector(self, data, *args):
 
+        if self.debug == True: self.debug_log('anti_scale_vector %s, %s' %(data, args))
+
         data = np.array(data)
 
         for name in args:
@@ -1211,6 +1357,9 @@ class Plot:
                     return (self.y0 - data) * self.y_scale_factor
             
     def get_scale_factor(self):
+
+        if self.debug == True: self.debug_log('get_scale_factor')
+
         return [self.x_scale_factor, self.y_scale_factor]
 
     # Plot Data
@@ -1226,6 +1375,9 @@ class Plot:
         animate: on,
         color: #xxxxxx, only hex colors
         """
+
+        if self.debug == True: self.debug_log('graph %s, %s, %s, %s, %s, %s, %s, %s, %s' 
+                    %(x, y, tag, style, scale, grid, legend, animate, color))
 
         dataset = self.dataset_find(tag, create='new')
 
@@ -1261,6 +1413,8 @@ class Plot:
 
     def find_data_marker(self, marker):
         
+        if self.debug == True: self.debug_log('find_data_marker %s' %(marker))
+
         # Returning None -> line graph
         if marker == 'line': return None
         elif marker == '+': return '+'
@@ -1301,6 +1455,9 @@ class Plot:
 
 
     def enable_animator(self, length):
+
+        if self.debug == True: self.debug_log('enable_animator %s' %(length))
+        
         if self.has_animation == False:
             self.animationScrollbar = Scale(self.canvas, from_=1, to=length, 
                         resolution=1, bg=self.bg_color, command=self.animate)
@@ -1311,10 +1468,16 @@ class Plot:
             self.has_animation = True
 
     def animate(self, value):
+
+        if self.debug == True: self.debug_log('animate %s' %(value))
+
         value = int(value)-1
         for tag in self.animation_tags: self.dataset_find(tag).move_item(value)
 
     def right_arrow_key_command(self, event):
+
+        if self.debug == True: self.debug_log('right_arrow_key_command %s' %(event))
+
         if self.plot_editor_selected_item != None:
             txt_index = self.find_text(self.plot_editor_selected_item)
             if txt_index == None: return
@@ -1327,6 +1490,9 @@ class Plot:
                                         + self.animation_speed)
 
     def left_arrow_key_command(self, event):
+
+        if self.debug == True: self.debug_log('left_arrow_key_command %s' %(event))
+
         if self.plot_editor_selected_item != None:
             txt_index = self.find_text(self.plot_editor_selected_item)
             if txt_index == None: return
@@ -1338,6 +1504,9 @@ class Plot:
                                         - self.animation_speed)
     
     def up_arrow_key_command(self, event):
+
+        if self.debug == True: self.debug_log('up_arrow_key_command %s' %(event))
+
         if self.plot_editor_selected_item != None:
             txt_index = self.find_text(self.plot_editor_selected_item)
             if txt_index != None: 
@@ -1350,6 +1519,9 @@ class Plot:
                 self.switch_legend_index(legend_index, -1)
     
     def down_arrow_key_command(self, event):
+
+        if self.debug == True: self.debug_log('down_arrow_key_command %s' %(event))
+
         if self.plot_editor_selected_item != None:
             txt_index = self.find_text(self.plot_editor_selected_item)
             if txt_index != None:
@@ -1363,6 +1535,9 @@ class Plot:
                 self.switch_legend_index(legend_index, 1)
                 
     def delete_key_command(self, event):
+
+        if self.debug == True: self.debug_log('delete_key_command %s' %(event))
+
         if self.plot_editor_selected_item != None:
             txt_index = self.find_text(self.plot_editor_selected_item)
             if txt_index == None: return
@@ -1373,15 +1548,24 @@ class Plot:
             self.__select_item()
 
     def escape_key_command(self, event):
+
+        if self.debug == True: self.debug_log('escape_key_command %s' %(event))
+
         if self.plot_editor_selected_item != None: self.__select_item()
 
     # Markers
 
     def set_markerbar(self, size_array, tag):
+
+        if self.debug == True: self.debug_log('set_markerbar %s, %s' %(size_array, tag))
+
         dataset = self.dataset_find(tag, create='new')
         dataset.set_markerbar(size_array)
 
     def update_markers(self, tag):
+
+        if self.debug == True: self.debug_log('update_makers %s' %(tag))
+
         dataset = self.dataset_find(tag)
         if dataset == None: return
         dataset.update_markers()
@@ -1389,12 +1573,18 @@ class Plot:
     # Colors
 
     def next_plot_color(self): 
+
+        if self.debug == True: self.debug_log('next_plot_color')
+
         cur_color = self.default_plot_colors[self.default_plot_color_iterator]
         self.default_plot_color_iterator +=1
         self.default_plot_color_iterator %= len(self.default_plot_colors)
         return cur_color
 
     def get_color(self, dataset):
+
+        if self.debug == True: self.debug_log('get_color %s' %(dataset))
+
         colors = dataset.get_color()
         data_range = range(dataset.getNumberOfPoints())
         if isinstance(colors, str): 
@@ -1402,12 +1592,18 @@ class Plot:
         return colors
 
     def update_colors(self, tag):
+
+        if self.debug == True: self.debug_log('update_colors %s' %(tag))
+
         dataset = self.dataset_find(tag)
         if dataset == None: return
         dataset.update_colors()
 
     def set_color(self, color, tag):
         """ Set color for dataseries in hex code """
+
+        if self.debug == True: self.debug_log('set_color %s, %s' %(color, tag))
+
         if self.is_hex_color(color): 
             dataset = self.dataset_find(tag, create='new')
             dataset.set_color(color)
@@ -1416,10 +1612,15 @@ class Plot:
                         self.update_legend(tag, color=color)
 
     def set_colorbar(self, color_array, tag):
+
+        if self.debug == True: self.debug_log('set_colorbar %s, %s' %(color_array, tag))
+
         dataset = self.dataset_find(tag, create='new')
         dataset.set_colorbar(color_array)
 
     def add_colorbar(self, color_start, color_end, *args):   
+
+        if self.debug == True: self.debug_log('add_colorbar %s, %s, %s' %(color_start, color_end, args))
 
         self.color_bar.place(x = self.canvas_boundary[2] + 10, 
                              y = self.canvas_boundary[1])
@@ -1456,15 +1657,23 @@ class Plot:
                                 anchor=NW, text=args[0][i], fill=self.fg_color))
 
     def get_colorbar(self): 
+
+        if self.debug == True: self.debug_log('get_colorbar')
+
         return np.flip(self.colorbar_colors)
 
     def is_hex_color(self, color):
+
+        if self.debug == True: self.debug_log('is_hex_color %s' %(color))
+
         hex_colors = r'^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$'
         regexp = re.compile(hex_colors)
         if regexp.search(color): return True
         return False
 
     def get_image(self, file):
+
+        if self.debug == True: self.debug_log('get_image %s' %(file))
 
         image_file = self.file_image_location + '\\' + file + '.png'
         return ImageTk.PhotoImage(Image.open(image_file)) 
@@ -1487,6 +1696,8 @@ class Plot:
     # Save Data
 
     def __save_data(self, *args):
+        
+        if self.debug == True: self.debug_log('__save_data %s' %(args))
 
         for i in args:
             dataset = self.dataset_find(i)
@@ -1500,6 +1711,8 @@ class Plot:
             np.save(data_name, data, allow_pickle=True, fix_imports=True)
     
     def __load_data(self):
+
+        if self.debug == True: self.debug_log('__load_data')
 
         tag = self.om_load_variable.get()
         if tag == '': return 
@@ -1525,10 +1738,15 @@ class Plot:
 
     def load_data(self, tag):
         """ Opens saved data and returns it as x, y """
+
+        if self.debug == True: self.debug_log('load_data %s' %(tag))
+
         data_name = self.file_save_location + '\\' + str(tag) + '.npy'
         if os.path.exists(data_name): return np.load(data_name)    
 
     def save_data(self, filename, tag):
+
+        if self.debug == True: self.debug_log('save_data %s, %s' %(filename, tag))
 
         dataset = self.dataset_find(tag)
         if dataset == None: return
