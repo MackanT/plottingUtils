@@ -86,6 +86,7 @@ class Plot:
         self.root_window.title(window_name)
         self.root_window.geometry('%dx%d'%(self.screen_width, self.screen_height))
         self.root_window.configure(bg=self.bg_color)
+        self.root_window.update()
         self.root_window.bind('<Configure>', self.update_screen_dimensions)
         self.root_window.protocol("WM_DELETE_WINDOW", self.__close_program)
 
