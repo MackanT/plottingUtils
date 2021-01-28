@@ -140,7 +140,7 @@ class Plot:
 
         # Grid
         self.x_grid = Log_Grid('x', self.plot)
-        self.y_grid = Lin_Grid('y', self.plot)
+        self.y_grid = Log_Grid('y', self.plot)
 
         # Drawn Content
         self.x_axis_numbers = []
@@ -305,9 +305,7 @@ class Plot:
     def update_screen_dimensions(self, event):
         """ Handles rescaling of program window """
 
-        if self.debug: 
-            self.debug_log('update_screen_dimensions %s' %event)
-            # print('update_screen_dimensions %s' %event)
+        if self.debug: self.debug_log('update_screen_dimensions %s' %event)
 
         screen_size = self.root_window.geometry()
         plus_location = screen_size.find('+')
@@ -940,7 +938,6 @@ class Plot:
                 self.x_boundary.append(x_end * 10**(-num_ticks+i))
         
         self.set_axis_numbers(num_ticks, 'x')
-        self.x_grid.redraw()
         
         if update: self.update_plots()
 
@@ -1003,7 +1000,6 @@ class Plot:
                 self.y_boundary.append(y_end * 10**(-num_ticks+i))
 
         self.set_axis_numbers(num_ticks, 'y')
-        self.y_grid.redraw()
 
         if update: self.update_plots()
 
@@ -1341,6 +1337,8 @@ class Plot:
         if grid == 'on': 
             self.x_grid.set_line_visibility(True)
             self.y_grid.set_line_visibility(True)
+        elif grid =='x': self.x_grid.set_line_visibility(True)
+        elif grid =='y': self.y_grid.set_line_visibility(True)
         if scale == 'log': self.scale_type = ['log', 'log']
         if style != None: 
             style = self.find_data_marker(style)

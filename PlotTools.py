@@ -53,6 +53,8 @@ class Lin_Grid:
             for i in range(self.number_of_steps):
                 self.pos[i] =  offset - i * step
 
+        self.redraw()
+
     def redraw(self):
         
         for item in self.lines: self.canvas.delete(item)
@@ -74,7 +76,7 @@ class Lin_Grid:
 
 class Log_Grid(Lin_Grid):
 
-    def __init__(self, direction, canvas, steps=10, line_visibility=True):
+    def __init__(self, direction, canvas, steps=3, line_visibility=True):
         """ steps = number of grid- lines/numbers
             line_visibility = if gridlines active  """
 
@@ -96,30 +98,22 @@ class Log_Grid(Lin_Grid):
         for item in self.lines: self.canvas.delete(item)
         self.lines.clear()          
 
-        if self.line_visibility == False: return
-        
-        const = self.pos[1]/9
-        for val in self.pos:
+        if self.line_visibility == False: return 
+
+        width = self.canvas.winfo_width()
+        height = self.canvas.winfo_height()
+
+        k = (10**self.number_of_steps - 1) / self.number_of_steps
+        scale_factor = (10**self.number_of_steps - 1)
+
+        for i in range(len(self.pos)):
             if self.direction == 'x':
                 for j in range(9):
-                    pos = [val + j*const, 0, val + j*const , self.canvas.winfo_height()]
-                    
+                    pixel = (1 + k * (i + np.log10(1 + j)))/scale_factor * width
+                    pos = [pixel, 0, pixel, height]
                     self.lines.append(self.canvas.create_line(pos, fill="gray"))
             else:
                 for j in range(9):
-                    pos = [0, val, self.canvas.winfo_width(), val]
+                    pixel = height - (1 + k * (i + np.log10(1 + j)))/scale_factor * height
+                    pos = [0, pixel, width, pixel]
                     self.lines.append(self.canvas.create_line(pos, fill="gray"))
-
-
-    
-                    (self.x_log_scale[0]*np.log10(data) 
-                                  + self.x_log_scale[1])/self.x_scale_factor
-
-    #     elif self.scale_type[0] == 'log':
-    #         for i in self.x_boundary[0:-1]:
-    #             for j in range(9):
-    #                 x = self.scale_vector([i * (1 + j)], 'x')[0]
-    #                 pos = [x, 0, x, self.plot_dimensions[1]]
-    #                 self.x_grid_lines.append(self.plot.create_line(pos, fill="gray"))
-
-
