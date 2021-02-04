@@ -187,7 +187,10 @@ class Plot:
         self.__canvas_button_home_add()
         self.__canvas_button_axis_add()
         self.__canvas_button_select_add()
+        self.__canvas_button_zoom_add()
         self.datapoints_selection = False
+        self.zoom_data = False
+        self.zoom_data_p1 = [0, 0]
         self.marked_points = []
         self.marked_text = []
         self.marked_objects = []
@@ -340,6 +343,8 @@ class Plot:
 
         self.x_grid.update_pos()
         self.y_grid.update_pos()
+        self.X_axis_numbers.update_numbers(self.plot.winfo_width(), self.canvas_boundary[0], self.font_size)
+        self.Y_axis_numbers.update_numbers(self.plot.winfo_height(), self.canvas_boundary[0], self.font_size)
 
         self.auto_focus()
 
@@ -460,7 +465,7 @@ class Plot:
         if self.debug: self.debug_log('mouse_pressed %s' %event)
 
         # Data Marker
-        if self.datapoints_selection == True:
+        if self.datapoints_selection:
             
             click_x = self.anti_scale_vector(event.x, 'x')
             click_y = self.anti_scale_vector(event.y, 'y')
@@ -469,6 +474,11 @@ class Plot:
             if np.linalg.norm(closest_point - [click_x, click_y]) > 2: return
             self.marked_points.append(closest_point)
             self.datapoint_mark()
+        
+        # Zoom in area
+        elif self.zoom_data:
+            self.zoom_data_p1[0] = self.anti_scale_vector(event.x, 'x')
+            self.zoom_data_p1[1] = self.anti_scale_vector(event.y, 'y')
 
         # Screen drag
         else:
@@ -525,7 +535,17 @@ class Plot:
 
         if self.debug: self.debug_log('mouse_released %s' %event)
 
-        if self.plot_drag_mouse_clicked == True:
+        # Zoom in area
+        if self.zoom_data:
+            x2 = self.anti_scale_vector(event.x, 'x')
+            y2 = self.anti_scale_vector(event.y, 'y')
+
+            self.set_x_axis(self.zoom_data_p1[0], x2, update=False)
+            self.set_y_axis(self.zoom_data_p1[1], y2, update=False)
+            self.update_plots()
+
+        # End screen drag
+        elif self.plot_drag_mouse_clicked == True:
             self.plot_drag_mouse_clicked = False
 
     def mouse_scrolled(self, event):
@@ -649,10 +669,13 @@ class Plot:
         self.datapoint_selector.place(x = self.canvas_boundary[2] - 85,
                                 y = self.canvas_boundary[1] - 5, anchor = SE)
 
-    def __canvas_button_select_update(self):
+    def __canvas_button_select_update(self, extra=False):
         """ Updates '__canvas_button_select_add' button """
 
-        if self.debug: self.debug_log('__canvas_button_home_update')
+        if self.debug: self.debug_log('__canvas_button_select_update')
+
+        if self.zoom_data == True and extra == False:
+            self.__canvas_button_zoom_update(extra=True)
 
         if self.datapoints_selection == False:
             self.datapoint_selector.config(bg = self.highlight_colors[2])
@@ -661,7 +684,36 @@ class Plot:
             self.datapoint_selector.config(bg = self.bg_color)
             self.datapoints_selection = False
 
-    
+    def __canvas_button_zoom_add(self):
+        """ Creates data zoom button """
+
+        if self.debug: self.debug_log('__canvas_button_zoom_add')
+
+        image_file = self.file_image_location + '\\zoom.png'
+        self.button_image_zoom = (
+                                ImageTk.PhotoImage(Image.open(image_file)) )
+        self.zoom_button = Button(self.canvas, width = 30, height = 35, 
+                                command = self.__canvas_button_zoom_update, 
+                                bg = self.bg_color, 
+                                image = self.button_image_zoom)
+        self.zoom_button.place(x = self.canvas_boundary[2] - 125,
+                                y = self.canvas_boundary[1] - 5, anchor = SE)
+
+    def __canvas_button_zoom_update(self, extra=False):
+        """ Updates '__canvas_button_zoom_add' button """
+
+        if self.debug: self.debug_log('__canvas_button_zoom_update')
+
+        if self.datapoints_selection == True and extra == False:
+            self.__canvas_button_select_update(extra=True)
+
+        if self.zoom_data == False:
+            self.zoom_button.config(bg = self.highlight_colors[2])
+            self.zoom_data = True
+        else:
+            self.zoom_button.config(bg = self.bg_color)
+            self.zoom_data = False
+
 
     def datapoint_find(self, x, y):
         
