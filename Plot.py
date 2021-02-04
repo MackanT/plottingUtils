@@ -2,7 +2,7 @@ from tkinter import *
 import tkinter.font as tkFont
 from PIL import ImageTk, Image
 from DataSeries import DataSeries
-from PlotTools import Lin_Grid, Log_Grid
+from PlotTools import Grid, Axis_Numbers
 import math
 import numpy as np
 import os
@@ -89,7 +89,7 @@ class Plot:
         self.root_window.bind('<Configure>', self.update_screen_dimensions)
         self.root_window.protocol("WM_DELETE_WINDOW", self.__close_program)
 
-
+        # Draw/Text area
         self.canvas = Canvas(self.root_window, width = self.screen_width, 
                              height = self.screen_height, bd = 0, 
                              bg=self.highlight_colors[5], 
@@ -97,6 +97,7 @@ class Plot:
         self.update_canvas_dimensions()
         self.canvas.place(x = 0, y = 0)
 
+        # Plotting Area
         self.plot = Canvas(self.root_window, width = self.plot_dimensions[0], 
                            height = self.plot_dimensions[1], bg='#ffffff', bd=0)
         self.plot.place(x = self.offset_x, y = self.offset_y ,anchor = NW)
@@ -139,8 +140,14 @@ class Plot:
         self.legend_pos = 'NE'
 
         # Grid
-        self.x_grid = Log_Grid('x', self.plot)
-        self.y_grid = Log_Grid('y', self.plot)
+        self.x_grid = Grid('x', self.plot, self.fg_color)
+        self.y_grid = Grid('y', self.plot, self.fg_color)
+
+        self.X_axis_numbers = Axis_Numbers('x', self.canvas, self.x_grid.get_pos(), self.fg_color)
+        self.X_axis_numbers.update_numbers(self.plot.winfo_width(), self.canvas_boundary[0], self.font_size)
+
+        self.Y_axis_numbers = Axis_Numbers('y', self.canvas, self.y_grid.get_pos(), self.fg_color)
+        self.Y_axis_numbers.update_numbers(self.plot.winfo_height(), self.canvas_boundary[0], self.font_size)
 
         # Drawn Content
         self.x_axis_numbers = []
@@ -487,24 +494,24 @@ class Plot:
             if self.scale_type[0] == 'lin':
                 delta_x = self.plot_drag_mouse_pos[0] - event.x
                 delta_x *= self.x_scale_factor
-                x_min = self.x_boundary[0] + delta_x
-                x_max = self.x_boundary[-1] + delta_x
+                x_min = self.X_axis_numbers.get_lower_axis() + delta_x
+                x_max = self.X_axis_numbers.get_upper_axis() + delta_x
                 self.plot_drag_mouse_pos[0] = event.x
             elif self.scale_type[0] == 'log':
                 delta_x = self.plot_drag_mouse_pos[0] - self.anti_scale_vector(event.x, 'x')
-                x_min = self.x_boundary[0] + delta_x
-                x_max = self.x_boundary[-1] + delta_x
+                x_min = self.X_axis_numbers.get_lower_axis() + delta_x
+                x_max = self.X_axis_numbers.get_upper_axis() + delta_x
                 
             if self.scale_type[1] == 'lin':
                 delta_y = event.y - self.plot_drag_mouse_pos[1]
                 delta_y *= self.y_scale_factor
-                y_min = self.y_boundary[0] + delta_y
-                y_max = self.y_boundary[-1] + delta_y
+                y_min = self.Y_axis_numbers.get_lower_axis() + delta_y
+                y_max = self.Y_axis_numbers.get_upper_axis() + delta_y
                 self.plot_drag_mouse_pos[1] = event.y
             elif self.scale_type[1] == 'log':
                 delta_y = self.plot_drag_mouse_pos[1] - self.anti_scale_vector(event.y, 'y')
-                y_min = self.y_boundary[0] + delta_y
-                y_max = self.y_boundary[-1] + delta_y
+                y_min = self.Y_axis_numbers.get_lower_axis() + delta_y
+                y_max = self.Y_axis_numbers.get_upper_axis() + delta_y
 
             self.set_x_axis(x_min, x_max, update=False)
             self.set_y_axis(y_min, y_max, update=False)
@@ -534,8 +541,8 @@ class Plot:
             pos_x = event.x * self.x_scale_factor
             pos_y = event.y * self.y_scale_factor
 
-            origin_x = (self.x_boundary[-1]-self.x_boundary[0]) / 2
-            origin_y = (self.y_boundary[-1]-self.y_boundary[0]) / 2
+            origin_x = (self.X_axis_numbers.get_upper_axis()-self.X_axis_numbers.get_lower_axis()) / 2
+            origin_y = (self.Y_axis_numbers.get_upper_axis()-self.Y_axis_numbers.get_lower_axis()) / 2
 
             displacement_x = pos_x - origin_x
             displacement_y = origin_y - pos_y
@@ -543,13 +550,13 @@ class Plot:
             zoom_strength = 5
             zoom_direction = event.delta/120 / zoom_strength
             
-            delta_x = (self.x_boundary[-1]-self.x_boundary[0]) * zoom_direction
-            delta_y = (self.y_boundary[-1]-self.y_boundary[0]) * zoom_direction
+            delta_x = (self.X_axis_numbers.get_upper_axis()-self.X_axis_numbers.get_lower_axis()) * zoom_direction
+            delta_y = (self.Y_axis_numbers.get_upper_axis()-self.Y_axis_numbers.get_lower_axis()) * zoom_direction
 
-            self.set_x_axis(self.x_boundary[0] + delta_x + displacement_x, 
-                        self.x_boundary[-1] - delta_x + displacement_x, update=False)
-            self.set_y_axis(self.y_boundary[0] + delta_y + displacement_y, 
-                        self.y_boundary[-1] - delta_y + displacement_y, update=False)
+            self.set_x_axis(self.X_axis_numbers.get_lower_axis() + delta_x + displacement_x, 
+                        self.X_axis_numbers.get_upper_axis() - delta_x + displacement_x, update=False)
+            self.set_y_axis(self.Y_axis_numbers.get_lower_axis() + delta_y + displacement_y, 
+                        self.Y_axis_numbers.get_upper_axis() - delta_y + displacement_y, update=False)
 
             self.update_plots()
 
@@ -621,8 +628,11 @@ class Plot:
 
         self.scale_unit_button.config(image = self.button_image_axis_unit)
         self.scale_unit_style = style
-        self.set_axis_numbers(len(self.x_axis_numbers) - 1, 'x')
-        self.set_axis_numbers(len(self.y_axis_numbers) - 1, 'y')
+
+        values = self.get_axis_numbers(item=self.X_axis_numbers)
+        self.X_axis_numbers.set_axis_values(values)       
+        values = self.get_axis_numbers(item=self.Y_axis_numbers)
+        self.Y_axis_numbers.set_axis_values(values)       
 
     def __canvas_button_select_add(self):
         """ Creates data selection button """
@@ -832,8 +842,8 @@ class Plot:
         if source == 'axis_y': return [round(min_y - delta_y), round(max_y + delta_y)]
 
         if self.x_boundary and self.y_boundary:
-            same_x = self.x_boundary[0] == round(min_x - delta_x)
-            same_y = self.y_boundary[0] == round(min_y - delta_y)
+            same_x = self.X_axis_numbers.get_lower_axis() == round(min_x - delta_x)
+            same_y = self.Y_axis_numbers.get_lower_axis() == round(min_y - delta_y)
             if same_x and same_y: return
 
         self.set_x_axis((min_x - delta_x), (max_x + delta_x), update=False)
@@ -885,32 +895,39 @@ class Plot:
             elif start > 0: self.y0 = -common_term*start + plot_dim
             else: self.y0 = abs_term * plot_dim
 
-    def set_x_axis(self, x_start, x_end, update=True, *args):
-        """ Sets X-Axis, Args: Keep = keeps axis, Log = Log Axis,
-        Lin = Lin Axis, Show = show gridlines, Hidden = hide gridlines """
+    def set_x_axis(self, x_start, x_end, steps=None, lines=None, update=True, axis=None, *args):
+        """ Sets X-Axis, Args: Keep = keeps axis, axis = lin/log if want to switch,
+            lines = true/false gridlines """
         
         if self.debug: self.debug_log('set_x_axis %s, %s, %s' %(x_start, x_end, args))
 
-        if x_start == 'keep': x_start = self.x_boundary[0]
-        if x_end == 'keep': x_end = self.x_boundary[-1]
+        if x_start == 'keep': x_start = self.X_axis_numbers.get_lower_axis()
+        if x_end == 'keep': x_end = self.X_axis_numbers.get_upper_axis()
+
+        # Gridlines + log/lin
+        if axis != None:
+            steps = self.x_grid.get_number_of_steps()
+            visibility = self.x_grid.get_line_visibility()
+            self.x_grid.remove()
+        if axis == 'log': self.x_grid.set_style('log')
+        elif axis == 'lin': self.x_grid.set_style('lin')
+        if lines != None: self.x_grid.set_line_visibility(lines)
+        if steps != None: 
+            self.x_grid.set_number_of_steps(steps)
+            self.X_axis_numbers.set_pos(self.x_grid.get_pos())     
 
         for name in args:
             if name == 'graph':
                 x_start, x_end = self.auto_focus(source='axis_x')
                 if self.x_boundary:
-                    cond1 = x_start > self.x_boundary[0]
-                    cond2 = x_end < self.x_boundary[-1]
+                    cond1 = x_start > self.X_axis_numbers.get_lower_axis()
+                    cond2 = x_end < self.X_axis_numbers.get_upper_axis()
                     if cond1 and cond2 : return
                     else:
-                        if x_start > self.x_boundary[0]: 
-                            x_start = self.x_boundary[0]
-                        if x_end < self.x_boundary[-1]: 
-                            x_end = self.x_boundary[-1]
-            elif name == 'log': self.scale_type[0] = 'log'
-            elif name == 'lin': self.scale_type[0] = 'lin'
-            elif name == 'show': self.x_grid.set_line_visibility(True)
-            elif name == 'hidden': self.x_grid.set_line_visibility(False) 
-            elif isinstance(name, int): self.x_grid.set_number_of_steps(name)
+                        if x_start > self.X_axis_numbers.get_lower_axis(): 
+                            x_start = self.X_axis_numbers.get_lower_axis()
+                        if x_end < self.X_axis_numbers.get_upper_axis(): 
+                            x_end = self.X_axis_numbers.get_upper_axis()
         
         num_ticks = self.x_grid.get_number_of_steps()
         if num_ticks == 0: num_ticks = 1 
@@ -918,13 +935,11 @@ class Plot:
         if x_start > x_end: x_start, x_end = x_end, x_start
         self.set_zero(x_start, x_end, 'x')   
         
-        self.x_boundary.clear()
+        self.X_axis_numbers.set_lower_axis(x_start)
+        self.X_axis_numbers.set_upper_axis(x_end)
+
         if self.scale_type[0] == 'lin':
-            self.x_scale_factor = (x_end-x_start)/self.plot_dimensions[0]
-            value_size = (x_end-x_start)/num_ticks
-            for i in range(num_ticks+1):
-                self.x_boundary.append(x_start + i*value_size)
-            
+            self.x_scale_factor = (x_end-x_start)/self.plot_dimensions[0]        
         elif self.scale_type[0] == 'log':
             if x_start <= 0: x_start, x_end = self.log_scale('scale_x')
             self.x_scale_factor = (x_end-x_start)/self.plot_dimensions[0]
@@ -937,38 +952,46 @@ class Plot:
             for i in range(num_ticks+1):
                 self.x_boundary.append(x_end * 10**(-num_ticks+i))
         
-        self.set_axis_numbers(num_ticks, 'x')
+        values = self.get_axis_numbers(steps=num_ticks, start=x_start, end=x_end)
+        self.X_axis_numbers.set_axis_values(values)       
+        
         
         if update: self.update_plots()
 
-    def set_y_axis(self, y_start, y_end, update=True, *args):
-        """ Sets Y-Axis, Args: Keep = keeps axis, Lock = locks axis, Log = Log Axis,
-        Lin = Lin Axis, Show = show gridlines, Hidden = hide gridlines """
+    def set_y_axis(self, y_start, y_end, steps=None, lines=None, update=True, axis=None, *args):
+        """ Sets Y-Axis, Args: Keep = keeps axis, Lock = locks axis, axis = line/log,
+            lines = true/false gridlines """
 
         if self.debug: self.debug_log('set_y_axis %s, %s, %s' %(y_start, y_end, args))
 
         auto_focus = False
 
-        if y_start == 'keep': y_start = self.y_boundary[0]
-        if y_end == 'keep': y_end = self.y_boundary[-1]
+        if y_start == 'keep': y_start = self.Y_axis_numbers.get_lower_axis()
+        if y_end == 'keep': y_end = self.Y_axis_numbers.get_upper_axis()
+
+        if axis != None:
+            steps = self.y_grid.get_number_of_steps()
+            visibility = self.y_grid.get_line_visibility()
+            self.y_grid.remove()
+        if axis == 'log': self.y_grid.set_style('log')
+        elif axis == 'lin': self.y_grid.set_style('lin')
+        if lines != None: self.y_grid.set_line_visibility(lines)
+        if steps != None: 
+            self.y_grid.set_number_of_steps(steps)
+            self.Y_axis_numbers.set_pos(self.y_grid.get_pos())
 
         for name in args:
             if name == 'graph':
                 auto_focus = True
                 if self.y_boundary:
-                    cond1 = y_start > self.y_boundary[0]
-                    cond2 = y_end < self.y_boundary[-1]
+                    cond1 = y_start > self.Y_axis_numbers.get_lower_axis()
+                    cond2 = y_end < self.Y_axis_numbers.get_upper_axis()
                     if cond1 and cond2: return
                     else:
-                        if y_start > self.y_boundary[0]: 
-                            y_start = self.y_boundary[0]
-                        if y_end < self.y_boundary[-1]: 
-                            y_end = self.y_boundary[-1]
-            elif name == 'log': self.scale_type[1] = 'log'
-            elif name == 'lin': self.scale_type[1] = 'lin'
-            elif name == 'show': self.y_grid.set_line_visibility(True)
-            elif name == 'hidden': self.y_grid.set_line_visibility(False)
-            elif isinstance(name, int): self.y_grid.set_number_of_steps(name)
+                        if y_start > self.Y_axis_numbers.get_lower_axis(): 
+                            y_start = self.Y_axis_numbers.get_lower_axis()
+                        if y_end < self.Y_axis_numbers.get_upper_axis(): 
+                            y_end = self.Y_axis_numbers.get_upper_axis()
 
         num_ticks = self.y_grid.get_number_of_steps()
         if num_ticks == 0: num_ticks = 1 
@@ -976,6 +999,9 @@ class Plot:
         if auto_focus == True: y_start, y_end = self.auto_focus(source='axis_y')
         if y_start > y_end: y_start, y_end = y_end, y_start
         self.set_zero(y_start, y_end, 'y')   
+
+        self.Y_axis_numbers.set_lower_axis(y_start)
+        self.Y_axis_numbers.set_upper_axis(y_end)
 
         self.y_boundary.clear()
         if self.scale_type[1] == 'lin':
@@ -999,45 +1025,53 @@ class Plot:
             for i in range(num_ticks+1):
                 self.y_boundary.append(y_end * 10**(-num_ticks+i))
 
-        self.set_axis_numbers(num_ticks, 'y')
+        values = self.get_axis_numbers(steps=num_ticks, start=y_start, end=y_end)
+        self.Y_axis_numbers.set_axis_values(values)   
 
         if update: self.update_plots()
 
-    def set_axis_numbers(self, num_ticks, order):
-        """ Called on to update axis numbers to viually show where data is located """
+    # Updated to class system
+    def update_grid(self, steps, grid, number):
+        """ Inputs new #steps and grid/number 
+            as x/y to update grid and axis numbers """
 
-        if self.debug: self.debug_log('set_axis_numbers %s, %s' %(num_ticks, order))
+        try: steps = int(steps)
+        except: return
+        if steps == 0: steps = 1
+            
+        grid.set_number_of_steps(steps)
+        number.set_pos(grid.get_pos())
+        values = self.get_axis_numbers(steps=steps, item=number)
+        number.set_axis_values(values)
 
-        if order == 'x':
-            if self.show_axis_custom == 'blank':
-                for item in self.x_axis_numbers: self.canvas.delete(item)
-                return
-            self.remove_drawn_items(self.x_axis_numbers)
-            step_size = self.plot_dimensions[0]/num_ticks
-            for i in range(num_ticks + 1):
-                pos = [self.canvas_boundary[0] + i*step_size, 
-                       self.canvas_boundary[3] + self.font_size/2]
-                if self.show_axis_custom == 'time':
-                    hour = int(self.x_boundary[i]%24)
-                    minute = int(60*(self.x_boundary[i]%24 - hour))
-                    tex = str(hour).zfill(2) + ':' + str(minute).zfill(2)
-                else: tex = self.scale_unit_style.format(self.x_boundary[i])
-                self.x_axis_numbers.append(self.canvas.create_text(pos, 
-                                            anchor = N, fill = self.fg_color, 
-                                            text = tex))
-        elif order == 'y':
-            if self.show_axis_custom == 'blank':
-                for item in self.y_axis_numbers: self.canvas.delete(item)
-                return
-            self.remove_drawn_items(self.y_axis_numbers)
-            step_size = self.plot_dimensions[1]/num_ticks
-            for i in range(num_ticks + 1):
-                pos = [self.canvas_boundary[0] - self.font_size/2, 
-                       self.canvas_boundary[3] - i*step_size]
-                tex = self.scale_unit_style.format(self.y_boundary[i])
-                self.y_axis_numbers.append(self.canvas.create_text(pos, 
-                                            anchor = E, fill = self.fg_color, 
-                                            text = tex))
+    # Updated to class system
+    def get_axis_numbers(self, steps=None, start=None, end=None, item=None):
+        """ Returns values to be printed along the axis
+            steps = number of gridlines, start/end = min/max x/y
+            item = x_axis or y_axis                              """
+
+        if self.debug: self.debug_log('get_axis_numbers %s, %s, %s' %(steps, start, end, item))
+        
+        if item != None:
+            start = item.get_lower_axis()
+            end = item.get_upper_axis()
+            if steps == None: steps = len(item.get_axis_values()) - 1
+
+        output = []
+        d_step = (end - start) / steps
+
+        for i in range(steps + 1):
+            val = start + d_step * i
+            if self.show_axis_custom == 'time':
+                hour = int(val%24)
+                minute = int(60*(val%24 - hour))
+                output.append(str(hour).zfill(2) + ':' + str(minute).zfill(2)) 
+            elif self.show_axis_custom == 'blank':
+                output.append('')
+            else: 
+                output.append(self.scale_unit_style.format(val))
+        
+        return output
 
     def log_scale(self, order):
         """ Find magnitude for auto-setting logarithmic scale """
@@ -1070,53 +1104,6 @@ class Plot:
             self.set_axis_label_type()
             return
             
-
-    # # Grid Lines
-
-    # def __grid_x(self, num_ticks):
-    #     """
-    #     Adds x gridlines to plot
-    #     """
-
-    #     if self.debug: self.debug_log('__grid_x %s' %(num_ticks))
-
-    #     # self.remove_grid_lines('x')
-    #     # self.has_x_grid = True
-    #     if self.scale_type[0] == 'lin':    
-    #         step_size = self.plot_dimensions[0]/num_ticks
-    #         # for i in range(num_ticks):
-    #         #     pos = [i*step_size, 0, i*step_size, self.plot_dimensions[1]]
-    #         #     self.x_grid_lines.append(self.plot.create_line(pos, fill="gray"))
-    #     elif self.scale_type[0] == 'log':
-    #         for i in self.x_boundary[0:-1]:
-    #             for j in range(9):
-    #                 x = self.scale_vector([i * (1 + j)], 'x')[0]
-    #                 pos = [x, 0, x, self.plot_dimensions[1]]
-    #                 self.x_grid_lines.append(self.plot.create_line(pos, fill="gray"))
-    
-    # def __grid_y(self, num_ticks):
-    #     """
-    #     Adds y gridlines to plot
-    #     """
-
-    #     if self.debug: self.debug_log('__grid_y %s' %(num_ticks))
-
-    #     # self.remove_grid_lines('y')
-    #     # self.has_y_grid = True
-    #     if self.scale_type[1] == 'lin':
-    #         step_size = self.plot_dimensions[1]/num_ticks
-    #         # for i in range(num_ticks):
-    #         #     pos = [0, i*step_size, self.plot_dimensions[0], i*step_size]
-    #         #     self.y_grid_lines.append(self.plot.create_line(pos, fill="gray"))
-    #     elif self.scale_type[1] == 'log':
-    #         for i in self.y_boundary[0:-1]:
-    #             for j in range(9):
-    #                 y = self.scale_vector([i * (1 + j)], 'y')[0]
-    #                 pos = [0, y, self.plot_dimensions[0], y]
-    #                 self.y_grid_lines.append(self.plot.create_line(pos, fill="gray"))
-        
-    #     self.raise_items()
-
     # Legend
 
     def set_legend(self, pos=None):
@@ -1318,10 +1305,10 @@ class Plot:
     def graph(self, x, y, tag, style=None, scale=None, grid=None, legend=None, 
              animate=None, color=None):
         """
-        Main 2D plot. 
+        Main 2D plotter. 
         Style: line, scatter, dot, +, x, *, circle etc.
         Scale: log,
-        grid: on,
+        grid: on, x, y
         legend: 'name',
         animate: on,
         color: #xxxxxx, only hex colors
@@ -1339,12 +1326,22 @@ class Plot:
             self.y_grid.set_line_visibility(True)
         elif grid =='x': self.x_grid.set_line_visibility(True)
         elif grid =='y': self.y_grid.set_line_visibility(True)
-        if scale == 'log': self.scale_type = ['log', 'log']
+
+        if scale == 'log': 
+            self.x_grid.set_style('log')
+            self.y_grid.set_style('log')
+            self.scale_type = ['log', 'log']
+        elif scale == 'lin': 
+            self.x_grid.set_style('lin')
+            self.y_grid.set_style('lin')
+            self.scale_type = ['lin', 'lin']
+
         if style != None: 
             style = self.find_data_marker(style)
             if style != None:
                 dataset.set_plot_type('scatter')
                 dataset.set_symbol(style)
+        
         if animate == 'on': 
             self.enable_animator(len(x)-1)
             self.animation_tags.append(tag)
@@ -1391,7 +1388,7 @@ class Plot:
             xPoints = []
             for i in self.x_boundary[0:-1]:
                 for j in range(nPoints):
-                    xPoints.append(self.x_boundary[0] + i*(1+j))
+                    xPoints.append(self.X_axis_numbers.get_lower_axis() + i*(1+j))
             return xPoints
     def plotBestFit(self, *args):
         
@@ -1435,7 +1432,7 @@ class Plot:
         if self.plot_editor_selected_item != None:
             txt_index = self.find_text(self.plot_editor_selected_item)
             if txt_index == None: return
-            x_scale = (self.x_boundary[-1]-self.x_boundary[0])/100
+            x_scale = (self.X_axis_numbers.get_upper_axis()-self.X_axis_numbers.get_lower_axis())/100
             self.plotted_text_position[txt_index][0] += x_scale
             self.update_text_pos(txt_index)
             
@@ -1450,7 +1447,7 @@ class Plot:
         if self.plot_editor_selected_item != None:
             txt_index = self.find_text(self.plot_editor_selected_item)
             if txt_index == None: return
-            x_scale = (self.x_boundary[-1]-self.x_boundary[0])/100
+            x_scale = (self.X_axis_numbers.get_upper_axis()-self.X_axis_numbers.get_lower_axis())/100
             self.plotted_text_position[txt_index][0] -= x_scale
             self.update_text_pos(txt_index)
         elif self.has_animation == True:
@@ -1464,7 +1461,7 @@ class Plot:
         if self.plot_editor_selected_item != None:
             txt_index = self.find_text(self.plot_editor_selected_item)
             if txt_index != None: 
-                y_scale = (self.y_boundary[-1]-self.y_boundary[0])/100
+                y_scale = (self.Y_axis_numbers.get_upper_axis()-self.Y_axis_numbers.get_lower_axis())/100
                 self.plotted_text_position[txt_index][1] += y_scale
                 self.update_text_pos(txt_index)
 
@@ -1479,7 +1476,7 @@ class Plot:
         if self.plot_editor_selected_item != None:
             txt_index = self.find_text(self.plot_editor_selected_item)
             if txt_index != None:
-                y_scale = (self.y_boundary[-1]-self.y_boundary[0])/100
+                y_scale = (self.Y_axis_numbers.get_upper_axis()-self.Y_axis_numbers.get_lower_axis())/100
                 self.plotted_text_position[txt_index][1] -= y_scale
                 self.update_text_pos(txt_index)
                 return
@@ -1789,7 +1786,8 @@ class Plot:
         self.x_scale_steps.place(x=10,y=112, anchor=NW)
         self.__add_focus_listeners(self.x_scale_steps)
         self.x_scale_steps.bind("<Return>", lambda event: 
-                                self.set_grid_lines('x', self.x_scale_steps.get()))
+                                self.update_grid(self.x_scale_steps.get(), 
+                                self.x_grid, self.X_axis_numbers))
 
         self.x_grid_button = Button(self.editor_canvas, width=25, height=25, 
                     command=lambda: self.__enable_grid('x'), 
@@ -1825,7 +1823,8 @@ class Plot:
         self.y_scale_steps.place(x=10,y=202, anchor=NW)
         self.__add_focus_listeners(self.y_scale_steps)
         self.y_scale_steps.bind("<Return>", lambda event: 
-                                self.set_grid_lines('y', self.y_scale_steps.get()))
+                                self.update_grid(self.y_scale_steps.get(), 
+                                self.y_grid, self.Y_axis_numbers))
 
         self.y_grid_button = Button(self.editor_canvas, width=25, height=25, 
                     command=lambda: self.__enable_grid('y'), 
@@ -2040,14 +2039,14 @@ class Plot:
                 if self.scale_type[1] == 'log': self.y_scale_steps.config(state='disabled')
                 elif self.scale_type[1] == 'lin': self.y_scale_steps.config(state='normal')
             elif button == 'x_linlog':              
-                if self.scale_type[0] == 'lin':
+                if self.x_grid.get_type() == 'lin':
                     self.x_linlog_button.config(image=self.button_image_log)
-                elif self.scale_type[0] == 'log':
+                elif self.x_grid.get_type() == 'log':
                     self.x_linlog_button.config(image=self.button_image_lin)
             elif button == 'y_linlog': 
-                if self.scale_type[1] == 'lin':
+                if self.y_grid.get_type() == 'lin':
                     self.y_linlog_button.config(image=self.button_image_log)    
-                elif self.scale_type[1] == 'log':
+                elif self.y_grid.get_type() == 'log':
                      self.y_linlog_button.config(image=self.button_image_lin)                   
             elif button == 'sel_item': 
                 if self.plot_editor_selected_counter == 0: 
@@ -2119,20 +2118,21 @@ class Plot:
     def __switch_linlog(self, order):
         
         if order == 'x':
-            if self.scale_type[0] == 'lin': 
-                self.set_x_axis('keep', 'keep', 'log')
-            elif self.scale_type[0] == 'log': 
-                self.set_x_axis('keep', 'keep', 'lin')
+            if self.x_grid.get_type() == 'lin': 
+                self.set_x_axis('keep', 'keep', axis='log')
+            elif self.x_grid.get_type() == 'log': 
+                self.set_x_axis('keep', 'keep', axis='lin')
                 
         elif order == 'y':
-            if self.scale_type[1] == 'lin': 
-                self.set_y_axis('keep', 'keep', 'log')
-            elif self.scale_type[1] == 'log': 
-                self.set_y_axis('keep', 'keep', 'lin')
+            if self.y_grid.get_type() == 'lin': 
+                self.set_y_axis('keep', 'keep', axis='log')
+            elif self.y_grid.get_type() == 'log': 
+                self.set_y_axis('keep', 'keep', axis='lin')
+        
         self.auto_focus()
         self.update_plots()
         self.__update_editor_buttons('x_grid', 'x_linlog', 
-                                    'y_grid', 'y_linlog')
+                                     'y_grid', 'y_linlog')
         
     def __enable_grid(self, order):
         if order =='x': self.x_grid.invert_line_visibility()
@@ -2146,17 +2146,17 @@ class Plot:
             if order == 'x':
                 if direction == 'low':
                     lower_x = value
-                    upper_x = self.x_boundary[-1]
+                    upper_x = self.X_axis_numbers.get_upper_axis()
                 elif direction == 'high':
-                    lower_x = self.x_boundary[0]
+                    lower_x = self.X_axis_numbers.get_lower_axis()
                     upper_x = value
                 self.set_x_axis(lower_x, upper_x)
             elif order == 'y':
                 if direction == 'low':
                     lower_y = value
-                    upper_y = self.y_boundary[-1]
+                    upper_y = self.Y_axis_numbers.get_upper_axis()
                 elif direction == 'high':
-                    lower_y = self.y_boundary[0]
+                    lower_y = self.Y_axis_numbers.get_lower_axis()
                     upper_y = value
                 self.set_y_axis(lower_y, upper_y)
         except:
@@ -2178,9 +2178,9 @@ class Plot:
             try: 
                 for i in range(3): self.lineApproximations.append(0)
                 if self.scale_type[0] == 'lin':  
-                    x = self.gen_x_path(50, self.x_boundary[0], self.x_boundary[-1]) 
+                    x = self.gen_x_path(50, self.X_axis_numbers.get_lower_axis(), self.X_axis_numbers.get_upper_axis()) 
                 elif self.scale_type[0] == 'log':
-                    x = self.gen_x_path(50, self.x_boundary[0], self.x_boundary[-1])
+                    x = self.gen_x_path(50, self.X_axis_numbers.get_lower_axis(), self.X_axis_numbers.get_upper_axis())
                 y = [0.1 for i in range(len(x))]
                 
                 dataset = self.dataset_find('bFit')
