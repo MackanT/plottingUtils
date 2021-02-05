@@ -191,6 +191,7 @@ class Plot:
         self.datapoints_selection = False
         self.zoom_data = False
         self.zoom_data_p1 = [0, 0]
+        self.zoom_marker = self.plot.create_rectangle(0, 0, 0, 0, state='hidden')
         self.marked_points = []
         self.marked_text = []
         self.marked_objects = []
@@ -478,8 +479,9 @@ class Plot:
         
         # Zoom in area
         elif self.zoom_data:
-            self.zoom_data_p1[0] = self.anti_scale_vector(event.x, 'x')
-            self.zoom_data_p1[1] = self.anti_scale_vector(event.y, 'y')
+            self.zoom_data_p1[0] = event.x
+            self.zoom_data_p1[1] = event.y
+            self.plot.itemconfig(self.zoom_marker, state='normal')
 
         # Screen drag
         else:
@@ -500,7 +502,11 @@ class Plot:
 
         if self.debug: self.debug_log('mouse_dragged %s' %event)
 
-        if self.plot_drag_mouse_clicked == True:
+        if self.zoom_data:
+            
+            self.plot.coords(self.zoom_marker, self.zoom_data_p1[0], self.zoom_data_p1[1], event.x, event.y)
+
+        elif self.plot_drag_mouse_clicked == True:
 
             if self.scale_type[0] == 'lin':
                 delta_x = self.plot_drag_mouse_pos[0] - event.x
@@ -538,11 +544,12 @@ class Plot:
 
         # Zoom in area
         if self.zoom_data:
+            self.plot.itemconfig(self.zoom_marker, state='hidden')
             x2 = self.anti_scale_vector(event.x, 'x')
             y2 = self.anti_scale_vector(event.y, 'y')
 
-            self.set_x_axis(self.zoom_data_p1[0], x2, update=False)
-            self.set_y_axis(self.zoom_data_p1[1], y2, update=False)
+            self.set_x_axis(self.anti_scale_vector(self.zoom_data_p1[0], 'x'), x2, update=False)
+            self.set_y_axis(self.anti_scale_vector(self.zoom_data_p1[0], 'x'), y2, update=False)
             self.update_plots()
 
         # End screen drag
@@ -1426,6 +1433,7 @@ class Plot:
 
         # Returning None -> line graph
         if marker == 'line': return None
+        elif marker == 'dot' or marker == '.': return '\u25cf'
         elif marker == '+': return '+'
         elif marker == 'o': return '\u20dd'
         elif marker == 'scatter': return '\u25cf'
