@@ -455,6 +455,7 @@ class Plot:
         self.plot_drag_mouse_pos = [0, 0]
 
         self.plot.bind('<ButtonPress-1>', self.mouse_pressed)
+        self.plot.bind('<ButtonPress-3>', self.right_mouse_pressed)
         self.plot.bind('<B1-Motion>', self.mouse_dragged)
         self.plot.bind('<ButtonRelease-1>', self.mouse_released)
         self.plot.bind('<MouseWheel>', self.mouse_scrolled)
@@ -547,6 +548,11 @@ class Plot:
         # End screen drag
         elif self.plot_drag_mouse_clicked == True:
             self.plot_drag_mouse_clicked = False
+
+    def right_mouse_pressed(self, event):
+        
+        if self.zoom_data: self.__canvas_button_zoom_update()
+        if self.datapoints_selection: self.__canvas_button_select_update()
 
     def mouse_scrolled(self, event):
         """
