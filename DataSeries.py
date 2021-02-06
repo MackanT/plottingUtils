@@ -5,11 +5,13 @@ class DataSeries:
 
     def __init__(self, tag, canvas):
         self.tag = tag
+        self.canvas = canvas
+
+        # Default settings
         self.line_width = 3
         self.scatter_width = 20
         self.symbol = '\u25cf'
         self.color = '#5FBFF9'
-        self.canvas = canvas
         self.plot_type = 'line'
 
         self.plotted_items = []
@@ -77,6 +79,7 @@ class DataSeries:
             self.plotted_items = np.empty(len(index))
             drawPos = 0
             for i in index:
+                
                 p1 = self.scaled_points[0, i]
                 p2 = self.scaled_points[1, i]
                 use_color = self.colorbar[i] if self.has_colorbar else self.color
@@ -108,21 +111,56 @@ class DataSeries:
         items = [0] if self.has_animation else range(len(self.plotted_items))
         if isinstance(index, int): index = np.array([index])
         if self.plot_type == 'scatter':
+
             for i in items:
-                box = self.canvas.bbox(int(self.plotted_items[i]))
-                width = (box[2] - box[0])/2
-                height = (box[3] - box[1])/2
-                p1 = int(self.scaled_points[0,index[i]] - width)
-                p2 = int(self.scaled_points[1,index[i]] - height)
-                self.canvas.moveto(int(self.plotted_items[i]), p1, p2)
+                item = int(self.plotted_items[i])
+
+                if self.points_visible[i] == 1:
+
+                    self.canvas.itemconfig(item, state='normal')
+
+                    box = self.canvas.bbox(item)
+                    width = (box[2] - box[0])/2
+                    height = (box[3] - box[1])/2
+                    p1 = int(self.scaled_points[0,index[i]] - width)
+                    p2 = int(self.scaled_points[1,index[i]] - height)
+                    
+                    self.canvas.moveto(item, p1, p2)
+
+                else: 
+                    self.canvas.itemconfig(item, state='hidden')
+
         elif self.plot_type == 'line':
             for i in items:
-                if i != self.data_length-1:
-                    p1 = int(self.scaled_points[0,index[i]])
-                    p2 = int(self.scaled_points[1,index[i]])
-                    p3 = int(self.scaled_points[0,index[i]+1])
-                    p4 = int(self.scaled_points[1,index[i]+1])
-                    self.canvas.coords(int(self.plotted_items[i]), p1, p2, p3, p4)
+                item = int(self.plotted_items[i])
+                if self.points_visible[i] == 1:
+
+                    self.canvas.itemconfig(item, state='normal')
+
+                    if i != self.data_length-1:
+                        p1 = int(self.scaled_points[0,index[i]])
+                        p2 = int(self.scaled_points[1,index[i]])
+                        p3 = int(self.scaled_points[0,index[i]+1])
+                        p4 = int(self.scaled_points[1,index[i]+1])
+                        self.canvas.coords(item, p1, p2, p3, p4)
+                else: 
+                    self.canvas.itemconfig(item, state='hidden')
+    
+    def on_canvas(self):
+
+        self.points_visible = np.ones(self.data_length)
+
+        # Hide x
+        index = np.where(self.scaled_points[0,:] < 0)[0]
+        self.points_visible[index] = 0
+        index = np.where(self.scaled_points[0,:] > self.canvas.winfo_width())[0]
+        self.points_visible[index] = 0
+
+        # Hide y
+        index = np.where(self.scaled_points[1,:] < 0)[0]
+        self.points_visible[index] = 0
+        index = np.where(self.scaled_points[1,:] > self.canvas.winfo_height())[0]
+        self.points_visible[index] = 0
 
     def update_colors(self):
         for i in range(len(self.plotted_items)):
@@ -141,6 +179,8 @@ class DataSeries:
     def update_item(self, x, y, *args):
         self.scaled_points[0,:] = x
         self.scaled_points[1,:] = y
+        self.on_canvas()
+
         if self.has_animation: self.move_item(args[0])
         else: self.move_item([i for i in range(self.data_length)])
 
@@ -192,6 +232,7 @@ class DataSeries:
     def add_scaled_points(self, x, y):
         self.scaled_points[0,:] = x
         self.scaled_points[1,:] = y
+        self.on_canvas()
 
     def edit_point(self, point, index):
         self.data_points[index] = point

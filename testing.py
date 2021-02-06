@@ -9,7 +9,7 @@ class Main():
 
         self.root = tk.Tk()
         self.root.withdraw()
-        self.plot_canvas = Plot(1000, 600, 'testingUtils')
+        self.plot_canvas = Plot(name='testingUtils')
 
         a = np.random.uniform(0,90,100)
         b = np.random.uniform(0,100,100)
@@ -22,14 +22,17 @@ class Main():
         self.plot_canvas.set_title('Schiikii Brrriikii')
         self.plot_canvas.set_labels('xxx','yyy')
         self.plot_canvas.graph(g,f, 'testData', grid='on', legend='Data 1')
-        self.plot_canvas.graph(b,c, 'testData3', style='scatter', legend='Data 2')
+        self.plot_canvas.graph(b,c, 'testData3', style='x', legend='Data 2')
         self.plot_canvas.graph(d,c, 'testData2', style='scatter', legend='Data 2 Long Text')
         self.plot_canvas.set_legend('SE')
         # self.plot_canvas.set_x_axis(0,110)
         # self.plot_canvas.set_y_axis(-0.1,100.2)
+
+        self.plot_canvas.dataset_state('hidden','testData')
+        self.plot_canvas.dataset_state('shown','testData')
         
-        # self.plot_canvas.add_text([3, 0.05], 'tatat', 'tex1')
-        # self.plot_canvas.update_text('Hahlelelha', 'tex1')
+        self.plot_canvas.set_text([3, 0.05], 'tatat', 'tex1')
+        self.plot_canvas.update_text('Hahlelelha', 'tex1')
         # self.plot_canvas.set_axis_scale_type('e')
 
         # self.test_code()
