@@ -390,6 +390,8 @@ class Plot:
                                      y = self.canvas_boundary[1] - 5)
         self.datapoint_selector.place(x = self.canvas_boundary[2] - 85,
                                      y = self.canvas_boundary[1] - 5)
+        self.zoom_button.place(x = self.canvas_boundary[2] - 125,
+                                     y = self.canvas_boundary[1] - 5)
 
         self.raise_items()        
 
@@ -549,7 +551,7 @@ class Plot:
             y2 = self.anti_scale_vector(event.y, 'y')
 
             self.set_x_axis(self.anti_scale_vector(self.zoom_data_p1[0], 'x'), x2, update=False)
-            self.set_y_axis(self.anti_scale_vector(self.zoom_data_p1[0], 'x'), y2, update=False)
+            self.set_y_axis(self.anti_scale_vector(self.zoom_data_p1[1], 'y'), y2, update=False)
             self.update_plots()
 
         # End screen drag
@@ -558,7 +560,9 @@ class Plot:
 
     def right_mouse_pressed(self, event):
         
-        if self.zoom_data: self.__canvas_button_zoom_update()
+        if self.zoom_data: 
+            self.plot.itemconfig(self.zoom_marker, state='hidden')
+            self.__canvas_button_zoom_update()
         if self.datapoints_selection: self.__canvas_button_select_update()
 
     def mouse_scrolled(self, event):
